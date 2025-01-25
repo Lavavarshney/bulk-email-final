@@ -106,7 +106,7 @@ app.get('/current-user', async (req, res) => {
   }
 });
 const checkIfSenderExists = async (email) => {
-  const apiKey = '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'; // Replace with your actual Brevo API key
+  //const apiKey = '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'; // Replace with your actual Brevo API key
   const url = 'https://api.brevo.com/v3/senders'; // Endpoint to get the list of senders
 
   try {
@@ -219,14 +219,14 @@ const apiInstance = new SibApiV3Sdk.TransactionalEmailsApi();
 // Connect to MongoDB
 // Connect to MongoDB Atlas
 
-mongoose.connect('mongodb://localhost:27017/csv-upload', {
+const mongoURI = process.env.MONGODB_URI;
+
+mongoose.connect(mongoURI, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
-  //serverSelectionTimeoutMS: 50000, // 5 seconds timeout
-  //heartbeatFrequencyMS: 20000,
 })
-.then(() => console.log('Connected to MongoDB Atlas'))
-.catch((error) => console.error('Error connecting to MongoDB Atlas:', error));
+  .then(() => console.log('Connected to MongoDB Atlas'))
+  .catch((error) => console.error('Error connecting to MongoDB Atlas:', error));
 
 
 // Setup multer for file upload
