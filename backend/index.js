@@ -19,17 +19,6 @@ const emailTracking = {}; // { email: { delivered: count, clicked: count } }
 // Allow requests from your frontend origin
 app.use(cors());
 app.use(express.json());
-// Serve static files from the React app
-const path = require("path");
-
-// Serve static files from the React app
-app.use(express.static(path.join(__dirname, "frontend/build"))); // Adjust path if React is in a different folder
-
-// Handle all other routes by sending the React app's index.html
-app.get("*", (req, res) => {
-  res.sendFile(path.join(__dirname, "frontend/build", "index.html"));
-});
-
 app.post('/signup', async (req, res) => {
   const { name, email, password, confirmPassword  } = req.body;
   console.log(req.body); // Log the request body to debug
