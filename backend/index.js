@@ -9,7 +9,7 @@ const cors = require('cors');
 const axios = require('axios'); // For tracking clicks
 const { generateToken, verifyToken } = require('./login'); // Adjust the path to your JWT file
 const { appendFile } = require('fs/promises');
-const bcrypt = require('bcrypt');
+const bcrypt = require('bcryptjs');
 const app = express();
 const PORT = process.env.PORT || 3000;
 require('dotenv').config();
