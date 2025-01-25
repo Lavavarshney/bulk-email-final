@@ -10,6 +10,7 @@ const axios = require('axios'); // For tracking clicks
 const { generateToken, verifyToken } = require('./login'); // Adjust the path to your JWT file
 const { appendFile } = require('fs/promises');
 const bcrypt = require('bcryptjs');
+const path = require('path');
 const app = express();
 const PORT = process.env.PORT || 3000;
 require('dotenv').config();
@@ -18,6 +19,13 @@ const emailTracking = {}; // { email: { delivered: count, clicked: count } }
 // Allow requests from your frontend origin
 app.use(cors());
 app.use(express.json());
+// Serve static files from the React app
+app.use(express.static(path.join(__dirname, 'build')));
+
+// Handle client-side routing, return all requests to the React app
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'build', 'index.html'));
+});
 app.post('/signup', async (req, res) => {
   const { name, email, password, confirmPassword  } = req.body;
   console.log(req.body); // Log the request body to debug
