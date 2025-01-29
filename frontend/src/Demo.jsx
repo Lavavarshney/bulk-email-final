@@ -3,7 +3,7 @@ import {
   Bold, Italic, Underline, AlignLeft, AlignCenter, 
   AlignRight, List, Link, Type, Quote, Code, Heading1, 
   Heading2, ListOrdered, Palette,Mail,Users,FileText,Send,Eye,Undo,Redo,Strikethrough,Indent,Outdent,Table,Subscript,Superscript,X,RemoveFormatting,Upload
-,Check} from "lucide-react";
+,Check,Paperclip, Trash2} from "lucide-react";
 
 const EnhancedEditor = ({ value, onChange }) => {
   const editorRef = useRef(null);
@@ -283,6 +283,25 @@ const Demo = () => {
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [previewRecipient, setPreviewRecipient] = useState(null);
   const[subject,setSubject] = useState('');
+  const [attachments, setAttachments] = useState([]);
+  const fileInputRef = useRef(null);
+    // Handle file attachments
+    const handleAttachmentChange = (e) => {
+      const newFiles = Array.from(e.target.files);
+      setAttachments(prev => [...prev, ...newFiles]);
+    };
+  
+    const removeAttachment = (index) => {
+      setAttachments(prev => prev.filter((_, i) => i !== index));
+    };
+  
+    const formatFileSize = (bytes) => {
+      if (bytes === 0) return '0 Bytes';
+      const k = 1024;
+      const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+      const i = Math.floor(Math.log(bytes) / Math.log(k));
+      return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    };
   // Handle rich text editor change
   const handleEditorChange = (content) => {
     setEmailContent(content);
@@ -520,7 +539,49 @@ const Demo = () => {
                   <EnhancedEditor onChange={handleEditorChange} />
                 </div>
               </div>
-
+{/* File Attachments Section */}
+<div className="mt-4 border rounded-lg p-4">
+          <div className="flex items-center justify-between mb-4">
+            <h4 className="font-medium flex items-center">
+              <Paperclip className="w-4 h-4 mr-2" />
+              Attachments
+            </h4>
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              className="flex items-center px-3 py-1.5 text-sm border border-gray-300 rounded-md hover:bg-gray-50"
+            >
+              <Upload className="w-4 h-4 mr-2" />
+              Add Files
+            </button>
+            <input
+              type="file"
+              ref={fileInputRef}
+              onChange={handleAttachmentChange}
+              className="hidden"
+              multiple
+            />
+          </div>
+          
+          {attachments.length > 0 && (
+            <div className="space-y-2">
+              {attachments.map((file, index) => (
+                <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded-md">
+                  <div className="flex items-center space-x-2">
+                    <FileText className="w-4 h-4 text-gray-500" />
+                    <span className="text-sm">{file.name}</span>
+                    <span className="text-xs text-gray-500">({formatFileSize(file.size)})</span>
+                  </div>
+                  <button
+                    onClick={() => removeAttachment(index)}
+                    className="p-1 hover:bg-gray-200 rounded-full"
+                  >
+                    <Trash2 className="w-4 h-4 text-red-500" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
               {/* Scheduling */}
               <div className="space-y-4">
                 <h3 className="text-lg font-semibold">Schedule Email</h3>
