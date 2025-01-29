@@ -282,7 +282,7 @@ const Demo = () => {
   const [activeTab, setActiveTab] = useState('manual');
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [previewRecipient, setPreviewRecipient] = useState(null);
-
+  const[subject,setSubject] = useState('');
   // Handle rich text editor change
   const handleEditorChange = (content) => {
     setEmailContent(content);
@@ -382,14 +382,14 @@ const Demo = () => {
           emailList: recipients,
           scheduleEmail,
           scheduleTime,
+          subject, // Add subject here
           emailContent: getCompleteEmailContent(),
         }),
       });
 
       if (response.ok) {
         alert("Emails sent successfully!");
-      } else {
-        alert(response.data.message); // If error message is returned from backend
+        console.log("subject",subject);
       }
     } catch (error) {
       console.error(error);
@@ -451,6 +451,13 @@ const Demo = () => {
                 <div className="mt-4">
                   {activeTab === 'manual' && (
                     <div className="space-y-4">
+                                        <input
+  type="text"
+  value={subject}
+  onChange={(e) => setSubject(e.target.value)}
+  placeholder="Enter email subject"
+  className="w-full p-3 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
+/>
                       <textarea
                         value={manualInput}
                         onChange={handleManualInputChange}
