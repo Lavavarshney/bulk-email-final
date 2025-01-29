@@ -37,6 +37,7 @@ app.post('/signup', async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 10);
     console.log("Hashed Password:", hashedPassword); // Debugging to check if hash is working correctly
     const newUser = await User.create({ name, email, password: hashedPassword });
+      await newUser.save();
     const token = generateToken(newUser);
 
     res.status(201).json({ message: 'User created successfully', token });
