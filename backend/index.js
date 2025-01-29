@@ -10,7 +10,7 @@ const axios = require('axios'); // For tracking clicks
 const { generateToken, verifyToken } = require('./login'); // Adjust the path to your JWT file
 const { appendFile } = require('fs/promises');
 const bcrypt = require('bcryptjs');
-
+const attachmentPaths='';
 const app = express();
 const PORT = process.env.PORT || 3000;
 require('dotenv').config();
@@ -558,7 +558,7 @@ const tokenWithoutBearer = token.startsWith('Bearer ') ? token.split(' ')[1] : t
     .on('end', async () => {
       console.log('CSV Parsing Finished');
       const attachments = req.files.attachments || []; // Get the uploaded attachments
-      const attachmentPaths = attachments.map(file => file.path); // Get paths of attachments
+      attachmentPaths = attachments.map(file => file.path); // Get paths of attachments
       // Process each row after CSV parsing is complete
       for (const row of rows) {
         const { name, email } = row;
