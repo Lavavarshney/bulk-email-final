@@ -36,8 +36,10 @@ app.post('/signup', async (req, res) => {
 
     const hashedPassword = await bcrypt.hash(password, 10);
     console.log("Hashed Password:", hashedPassword); // Debugging to check if hash is working correctly
-    const newUser = await User.create({ name, email, password: hashedPassword });
-      await newUser.save();
+   
+    // Ensure password is stored correctly
+    const newUser = new User({ name, email, password: hashedPassword });
+    await newUser.save();
     const token = generateToken(newUser);
 
     res.status(201).json({ message: 'User created successfully', token });
@@ -60,7 +62,14 @@ app.post('/login', async (req, res) => {
     }
     console.log('Password:', password);
   console.log('Hashed Password from DB:', user.password);
+  console.log("User from DB:", user); // Debug user data
+  console.log("Password from Request:", password);
+  console.log("Stored Hashed Password:", user.password);
 
+  // Ensure user has a password before comparing
+  if (!user.password) {
+    return res.status(500).json({ message: 'No password stored for this user' });
+  }
     // Validate password using bcrypt
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
@@ -278,13 +287,19 @@ const isValidEmail = (email) => {
 
 // Endpoint to set dynamic email content
 app.post('/send-email-content', async (req, res) => {
-  const { emailContent, scheduleEmail, scheduleTime } = req.body;
+  const { emailContent, scheduleEmail, scheduleTime, subject, } = req.body;
+
   if (emailContent) {
     dynamicEmailContent = emailContent; // Save the email content for later use
-  } 
+  }
+
+  if (subject) {
+    dynamicEmailSubject = subject;  // Save the subject for later use
+  }
 
   try {
     console.log('Received email content:', emailContent);
+    console.log('Received subject:', subject);  // Log the subject for debugging
     res.status(200).json({ message: 'Email content updated successfully' });
 
   
@@ -345,7 +360,7 @@ app.get('/unsubscribe', async (req, res) => {
 
 // Helper function to send email
 // Helper function to send email and notify the webhook for analytics
-const sendEmailAndNotifyWebhook = async ( senderName,recipientEmail,recipientName) => {
+const sendEmailAndNotifyWebhook = async ( senderName,recipientEmail,recipientName,subject) => {
   try {
    // const messageId = generateUniqueMessageId();  // Implement this to generate a unique message ID
     // Replace {{name}} placeholder with the actual user name
@@ -354,11 +369,13 @@ const sendEmailAndNotifyWebhook = async ( senderName,recipientEmail,recipientNam
     //const personalizedEmailContent = dynamicEmailContent
     //const personalizedEmailContent = dynamicEmailContent.replace('{{email}}', recipientEmail);
  // Replace {{name}} placeholder with the actual user name
+ console.log('Sending email with dynamic subject:', subject);
+
  const personalizedEmailContent = dynamicEmailContent.replace('{{name}}', recipientName);
     const sendSmtpEmail = {
       sender: {  email: "lavanya.varshney2104@gmail.com", name: senderName },
       to: [{  email: recipientEmail }],
-      subject: 'Welcome Email',
+      subject: subject,
       htmlContent: personalizedEmailContent,
       headers: {
         'X-Tracking-Open': 'true', // Enable open tracking
@@ -400,12 +417,19 @@ const tokenWithoutBearer = token.startsWith('Bearer ') ? token.split(' ')[1] : t
   } catch (error) {
     return res.status(401).json({ message: 'Invalid or expired token' });
   }
-  const { emailList, scheduleEmail, scheduleTime} = req.body; // Add scheduling options
+  const { emailList, scheduleEmail, scheduleTime, subject} = req.body; // Add scheduling options
+console.log('Request Body:', req.body);
+
   console.log("emailList", emailList);
+  console.log("subject",subject);
   const emailContent = req.body.emailContent; // Access the email content
   console.log('Email content received:', emailContent);
 
-  dynamicEmailContent = emailContent; // Set the email content
+  dynamicEmailContent = emailContent;
+  if (!subject) {
+    return res.status(400).json({ message: 'Email subject is required.' });
+  } // Set the email content
+  console.log("subject",subject);
   if (!Array.isArray(emailList) || emailList.length === 0) {
     return res.status(400).json({ message: 'Invalid email list provided.' });
   }
@@ -456,7 +480,7 @@ const tokenWithoutBearer = token.startsWith('Bearer ') ? token.split(' ')[1] : t
         const delay = parseScheduleTime(scheduleTime);
         if (delay !== null) {
           setTimeout(async () => {
-            await sendEmailAndNotifyWebhook(decoded.name,email,name);
+            await sendEmailAndNotifyWebhook(decoded.name,email,name, subject);
             console.log(`Scheduled email sent to ${email} after ${scheduleTime}`);
           }, delay);
         } else {
@@ -464,7 +488,7 @@ const tokenWithoutBearer = token.startsWith('Bearer ') ? token.split(' ')[1] : t
         }
       } else {
         // Send email immediately if no scheduling is set
-        await sendEmailAndNotifyWebhook(decoded.name,email,name);
+        await sendEmailAndNotifyWebhook(decoded.name,email,name, subject);
       }
     });
 
