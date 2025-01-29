@@ -381,6 +381,10 @@ const sendEmailAndNotifyWebhook = async ( senderName,recipientEmail,recipientNam
         'X-Tracking-Open': 'true', // Enable open tracking
         'X-Tracking-Click': 'true' // Enable click tracking (if needed)
       },
+      attachment: attachmentPaths.map(path => ({
+        url: path, // URL to the file
+        name: path.split('/').pop() // Extract the file name
+      })),
     };
 
     const emailResponse = await apiInstance.sendTransacEmail(sendSmtpEmail);
@@ -514,7 +518,7 @@ const checkEmailContent = (req, res, next) => {
   next();
 };
 // Route to upload CSV file and create a campaign
- app.post('/upload-csv',  upload.single('csvFile'), async (req, res) => {
+ app.post('/upload-csv',upload.fields([{ name: 'csvFile' }, { name: 'attachments' }]), async (req, res) => {
   const token = req.headers['authorization'];  // Get the token from the headers
   if (!token) {
     return res.status(400).json({ message: 'No token provided' });
@@ -528,7 +532,7 @@ const tokenWithoutBearer = token.startsWith('Bearer ') ? token.split(' ')[1] : t
   } catch (error) {
     return res.status(401).json({ message: 'Invalid or expired token' });
   }
-  if (!req.file) {
+  if (!req.files || !req.files.csvFile) {
     return res.status(400).send('No file uploaded.');
   }
   const emailContent = req.body.emailContent; // Access the email content
@@ -536,7 +540,7 @@ const tokenWithoutBearer = token.startsWith('Bearer ') ? token.split(' ')[1] : t
 
   dynamicEmailContent = emailContent; // Set the email content
   console.log('File received:', req.file);
-  const filePath = req.file.path;
+  const filePath = req.files.csvFile[0].path; // Get the path of the uploaded CSV file
   const validUsers = [];
   const invalidUsers = [];
  
@@ -553,7 +557,8 @@ const tokenWithoutBearer = token.startsWith('Bearer ') ? token.split(' ')[1] : t
     })
     .on('end', async () => {
       console.log('CSV Parsing Finished');
-      
+      const attachments = req.files.attachments || []; // Get the uploaded attachments
+      const attachmentPaths = attachments.map(file => file.path); // Get paths of attachments
       // Process each row after CSV parsing is complete
       for (const row of rows) {
         const { name, email } = row;
