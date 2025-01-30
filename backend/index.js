@@ -388,7 +388,7 @@ console.log("attachments",attachments);
       })),
     };
 
-    };
+  
 
     const emailResponse = await apiInstance.sendTransacEmail(sendSmtpEmail);
     console.log('Email sent:', emailResponse);
