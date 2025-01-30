@@ -371,7 +371,7 @@ const sendEmailAndNotifyWebhook = async ( senderName,recipientEmail,recipientNam
     //const personalizedEmailContent = dynamicEmailContent.replace('{{email}}', recipientEmail);
  // Replace {{name}} placeholder with the actual user name
  console.log('Sending email with dynamic subject:', subject);
-
+console.log(attachments);
  const personalizedEmailContent = dynamicEmailContent.replace('{{name}}', recipientName);
     const sendSmtpEmail = {
       sender: {  email: "lavanya.varshney2104@gmail.com", name: senderName },
