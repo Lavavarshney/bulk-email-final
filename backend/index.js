@@ -371,7 +371,7 @@ const sendEmailAndNotifyWebhook = async ( senderName,recipientEmail,recipientNam
     //const personalizedEmailContent = dynamicEmailContent.replace('{{email}}', recipientEmail);
  // Replace {{name}} placeholder with the actual user name
  //console.log('Sending email with dynamic subject:', subject);
-console.log("attachments",attachments);
+console.log("attachments in smtp mail",attachments);
  const personalizedEmailContent = dynamicEmailContent.replace('{{name}}', recipientName);
     const sendSmtpEmail = {
       sender: {  email: "lavanya.varshney2104@gmail.com", name: senderName },
@@ -542,7 +542,7 @@ const tokenWithoutBearer = token.startsWith('Bearer ') ? token.split(' ')[1] : t
   console.log('Email content received:', emailContent);
 
   dynamicEmailContent = emailContent; // Set the email content
-  console.log('File received:', req.file);
+ // console.log('File received:', req.file);
  // const filePath = req.files.csvFile[0].path; // Get the path of the uploaded CSV file
   const validUsers = [];
   const invalidUsers = [];
