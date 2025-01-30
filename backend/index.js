@@ -361,7 +361,7 @@ app.get('/unsubscribe', async (req, res) => {
 
 // Helper function to send email
 // Helper function to send email and notify the webhook for analytics
-const sendEmailAndNotifyWebhook = async ( senderName,recipientEmail,recipientName,subject) => {
+const sendEmailAndNotifyWebhook = async ( senderName,recipientEmail,recipientName,subject,attachments) => {
   try {
    // const messageId = generateUniqueMessageId();  // Implement this to generate a unique message ID
     // Replace {{name}} placeholder with the actual user name
@@ -382,9 +382,9 @@ const sendEmailAndNotifyWebhook = async ( senderName,recipientEmail,recipientNam
         'X-Tracking-Open': 'true', // Enable open tracking
         'X-Tracking-Click': 'true' // Enable click tracking (if needed)
       },
-      attachment: attachmentPaths.map(path => ({
-        url: path, // URL to the file
-        name: path.split('/').pop() // Extract the file name
+      attachments: attachments.map(path => ({
+        url: file.path, // URL to the file
+        name:  file.originalname  // Extract the file name
       })),
     };
 
@@ -541,12 +541,14 @@ const tokenWithoutBearer = token.startsWith('Bearer ') ? token.split(' ')[1] : t
 
   dynamicEmailContent = emailContent; // Set the email content
   console.log('File received:', req.file);
-  const filePath = req.files.csvFile[0].path; // Get the path of the uploaded CSV file
+ // const filePath = req.files.csvFile[0].path; // Get the path of the uploaded CSV file
   const validUsers = [];
   const invalidUsers = [];
- 
+  const csvFile = req.files['csvFile'][0];
+  const attachments = req.files['attachments'];
   // Parse the CSV file
   const rows = [];
+  const filePath = csvFile.path; 
   fs.createReadStream(filePath)
     .pipe(csvParser({
       separator: ',',  // Specify the delimiter (comma)
@@ -558,8 +560,7 @@ const tokenWithoutBearer = token.startsWith('Bearer ') ? token.split(' ')[1] : t
     })
     .on('end', async () => {
       console.log('CSV Parsing Finished');
-      const attachments = req.files.attachments || []; // Get the uploaded attachments
-      attachmentPaths = attachments.map(file => file.path); // Get paths of attachments
+      
       // Process each row after CSV parsing is complete
       for (const row of rows) {
         const { name, email } = row;
@@ -589,7 +590,7 @@ const tokenWithoutBearer = token.startsWith('Bearer ') ? token.split(' ')[1] : t
           const delay = parseScheduleTime(req.body.scheduleTime);
           if (delay !== null) {
             setTimeout(async () => {
-              await sendEmailAndNotifyWebhook(decoded.name, cleanedEmail,cleanedName);
+              await sendEmailAndNotifyWebhook(decoded.name, cleanedEmail,cleanedName, attachments);
               console.log(`Scheduled email sent to ${cleanedEmail} after ${req.body.scheduleTime}`);
             }, delay);
           } else {
@@ -597,7 +598,7 @@ const tokenWithoutBearer = token.startsWith('Bearer ') ? token.split(' ')[1] : t
           }
         } else {
           // Send email immediately if no schedule is set
-          await sendEmailAndNotifyWebhook(decoded.name, cleanedEmail,cleanedName);
+          await sendEmailAndNotifyWebhook(decoded.name, cleanedEmail,cleanedName, attachments);
         }
         
         } catch (error) {
