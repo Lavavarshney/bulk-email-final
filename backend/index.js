@@ -371,7 +371,7 @@ const sendEmailAndNotifyWebhook = async ( senderName,recipientEmail,recipientNam
     //const personalizedEmailContent = dynamicEmailContent.replace('{{email}}', recipientEmail);
  // Replace {{name}} placeholder with the actual user name
  //console.log('Sending email with dynamic subject:', subject);
-console.log(attachments);
+console.log("attachments",attachments);
  const personalizedEmailContent = dynamicEmailContent.replace('{{name}}', recipientName);
     const sendSmtpEmail = {
       sender: {  email: "lavanya.varshney2104@gmail.com", name: senderName },
@@ -382,10 +382,12 @@ console.log(attachments);
         'X-Tracking-Open': 'true', // Enable open tracking
         'X-Tracking-Click': 'true' // Enable click tracking (if needed)
       },
-      attachments: attachments.map(path => ({
-        url: file.path, // URL to the file
-        name:  file.originalname  // Extract the file name
+     attachments: attachments.map(attachment => ({
+        url: attachment.path, // Path to the file
+        name: attachment.originalname // Original file name
       })),
+    };
+
     };
 
     const emailResponse = await apiInstance.sendTransacEmail(sendSmtpEmail);
