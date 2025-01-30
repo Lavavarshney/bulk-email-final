@@ -533,6 +533,8 @@ const tokenWithoutBearer = token.startsWith('Bearer ') ? token.split(' ')[1] : t
   } catch (error) {
     return res.status(401).json({ message: 'Invalid or expired token' });
   }
+     console.log('Request Body:', req.body);
+  console.log('Request Files:', req.files)
   if (!req.files || !req.files.csvFile) {
     return res.status(400).send('No file uploaded.');
   }
