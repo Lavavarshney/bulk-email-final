@@ -533,8 +533,6 @@ const tokenWithoutBearer = token.startsWith('Bearer ') ? token.split(' ')[1] : t
   } catch (error) {
     return res.status(401).json({ message: 'Invalid or expired token' });
   }
-     console.log('Request Body:', req.body);
-  console.log('Request Files:', req.files)
   if (!req.files || !req.files.csvFile) {
     return res.status(400).send('No file uploaded.');
   }
@@ -548,7 +546,7 @@ const tokenWithoutBearer = token.startsWith('Bearer ') ? token.split(' ')[1] : t
   const invalidUsers = [];
   const csvFile = req.files['csvFile'][0];
   const attachments = req.files['attachments'];
- console.log("csvFile",csvFile)
+  console.log("csvFile",csvFile)
   console.log("attachments",attachments)
   // Parse the CSV file
   const rows = [];
@@ -602,7 +600,7 @@ const tokenWithoutBearer = token.startsWith('Bearer ') ? token.split(' ')[1] : t
           }
         } else {
           // Send email immediately if no schedule is set
-          await sendEmailAndNotifyWebhook(decoded.name, cleanedEmail,cleanedName, attachments);
+          await sendEmailAndNotifyWebhook(decoded.name, cleanedEmail,cleanedName,subject,attachments);
         }
         
         } catch (error) {
