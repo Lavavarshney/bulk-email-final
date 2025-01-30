@@ -546,6 +546,8 @@ const tokenWithoutBearer = token.startsWith('Bearer ') ? token.split(' ')[1] : t
   const invalidUsers = [];
   const csvFile = req.files['csvFile'][0];
   const attachments = req.files['attachments'];
+ console.log("csvFile",csvFile)
+  console.log("attachments",attachments)
   // Parse the CSV file
   const rows = [];
   const filePath = csvFile.path; 
