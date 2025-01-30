@@ -361,7 +361,7 @@ app.get('/unsubscribe', async (req, res) => {
 
 // Helper function to send email
 // Helper function to send email and notify the webhook for analytics
-const sendEmailAndNotifyWebhook = async ( senderName,recipientEmail,recipientName,subject,attachments) => {
+const sendEmailAndNotifyWebhook = async ( senderName,recipientEmail,recipientName,attachments) => {
   try {
    // const messageId = generateUniqueMessageId();  // Implement this to generate a unique message ID
     // Replace {{name}} placeholder with the actual user name
@@ -370,13 +370,13 @@ const sendEmailAndNotifyWebhook = async ( senderName,recipientEmail,recipientNam
     //const personalizedEmailContent = dynamicEmailContent
     //const personalizedEmailContent = dynamicEmailContent.replace('{{email}}', recipientEmail);
  // Replace {{name}} placeholder with the actual user name
- console.log('Sending email with dynamic subject:', subject);
+ //console.log('Sending email with dynamic subject:', subject);
 console.log(attachments);
  const personalizedEmailContent = dynamicEmailContent.replace('{{name}}', recipientName);
     const sendSmtpEmail = {
       sender: {  email: "lavanya.varshney2104@gmail.com", name: senderName },
       to: [{  email: recipientEmail }],
-      subject: subject,
+      //subject: subject,
       htmlContent: personalizedEmailContent,
       headers: {
         'X-Tracking-Open': 'true', // Enable open tracking
@@ -592,7 +592,7 @@ const tokenWithoutBearer = token.startsWith('Bearer ') ? token.split(' ')[1] : t
           const delay = parseScheduleTime(req.body.scheduleTime);
           if (delay !== null) {
             setTimeout(async () => {
-              await sendEmailAndNotifyWebhook(decoded.name, cleanedEmail,cleanedName, attachments);
+              await sendEmailAndNotifyWebhook(decoded.name, cleanedEmail,cleanedName,attachments);
               console.log(`Scheduled email sent to ${cleanedEmail} after ${req.body.scheduleTime}`);
             }, delay);
           } else {
@@ -600,7 +600,7 @@ const tokenWithoutBearer = token.startsWith('Bearer ') ? token.split(' ')[1] : t
           }
         } else {
           // Send email immediately if no schedule is set
-          await sendEmailAndNotifyWebhook(decoded.name, cleanedEmail,cleanedName,subject,attachments);
+          await sendEmailAndNotifyWebhook(decoded.name, cleanedEmail,cleanedName,attachments);
         }
         
         } catch (error) {
