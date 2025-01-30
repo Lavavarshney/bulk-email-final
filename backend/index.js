@@ -376,7 +376,7 @@ console.log("attachments",attachments);
     const sendSmtpEmail = {
       sender: {  email: "lavanya.varshney2104@gmail.com", name: senderName },
       to: [{  email: recipientEmail }],
-      //subject: subject,
+      subject: "hello",
       htmlContent: personalizedEmailContent,
       headers: {
         'X-Tracking-Open': 'true', // Enable open tracking
