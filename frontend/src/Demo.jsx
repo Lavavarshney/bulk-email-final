@@ -73,7 +73,7 @@ const Demo = () => {
     formData.append("scheduleEmail", scheduleEmail);
     formData.append("scheduleTime", scheduleTime);
     formData.append("emailContent", getCompleteEmailContent());
-    formData.append("subject",subject);
+ //   formData.append("subject",subject);
         console.log("file",file);
   // Append attachments to FormData
  /* attachments.forEach((attachment) => {
