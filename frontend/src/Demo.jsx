@@ -65,7 +65,11 @@ const Demo = () => {
     setIsUploading(true);
     setStatus("Uploading...");
     const formData = new FormData();
-    formData.append("csvFile", file);
+    if (file) {
+      formData.append("csvFile", file, file.name);
+    } else {
+      console.error("No CSV file selected!");
+    }
     formData.append("scheduleEmail", scheduleEmail);
     formData.append("scheduleTime", scheduleTime);
     formData.append("emailContent", getCompleteEmailContent());
