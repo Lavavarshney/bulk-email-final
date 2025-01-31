@@ -70,12 +70,12 @@ const Demo = () => {
     formData.append("scheduleTime", scheduleTime);
     formData.append("emailContent", getCompleteEmailContent());
     formData.append("subject",subject);
-    
+        console.log("file",file);
   // Append attachments to FormData
-  attachments.forEach((attachment) => {
+ /* attachments.forEach((attachment) => {
     formData.append("attachments", attachment); // Use the same key for multiple files
   });
-
+*/
     const token = localStorage.getItem("token");  // Retrieve token from localStorage
     console.log("token", token);
     try {
