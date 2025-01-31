@@ -318,7 +318,7 @@ app.get('/open-rate', async (req, res) => {
     }
   
     try {
-      const decoded = jwt.verify(token, process.env.JWT_SECRET); // Verify and decode the token
+      const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY); // Verify and decode the token
       const userEmail = decoded.email; // Extract the user's email from the token
   
       // Filter the emailTracking data for the current user
