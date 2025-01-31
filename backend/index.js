@@ -329,8 +329,8 @@ app.get('/open-rate', async (req, res) => {
           const openRate = effectiveDelivered > 0 ? ((opened / effectiveDelivered) * 100).toFixed(2) : 0;
           return { email, delivered: effectiveDelivered, opened, openRate: `${openRate}%` };
         });
-  
-      res.status(200).json(userOpenRates);
+       console.log('User  open rates:', userOpenRates); // Log the user open rates
+        res.status(200).json(userOpenRates);
     } catch (error) {
       console.error('Error verifying token:', error);
       res.status(401).json({ message: 'Invalid token' });
