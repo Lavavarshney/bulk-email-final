@@ -89,6 +89,7 @@ const Demo = () => {
       });
 
       const result = await response.json();
+       console.log(response.status)
       setStatus(response.ok ? "File uploaded successfully!" : `Error: ${result.message}`);
     } catch (error) {
       console.error("Error uploading file:", error);
