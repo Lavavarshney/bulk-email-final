@@ -91,7 +91,7 @@ const Demo = () => {
         },
         body: formData,
       });
-
+ console.log(response.body)
       const result = await response.json();
        console.log(response.status)
       setStatus(response.ok ? "File uploaded successfully!" : `Error: ${result.message}`);
