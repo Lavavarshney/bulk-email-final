@@ -18,7 +18,7 @@ const attachmentPaths='';
 const apiKey = process.env.BREVO_API_KEY;
 const emailTracking = {}; // { email: { delivered: count, clicked: count } }
 // Allow requests from your frontend origin
-app.use(cors());
+app.use(cors({  allowedHeaders: ['Content-Type', 'Authorization'], }));
 app.use(express.json());
 app.post('/signup', async (req, res) => {
   const { name, email, password, confirmPassword  } = req.body;
