@@ -14,7 +14,7 @@ const jwt = require('jsonwebtoken');
 const app = express();
 const PORT = process.env.PORT || 3000;
 require('dotenv').config();
-const attachmentPaths='';
+
 const apiKey = process.env.BREVO_API_KEY;
 const emailTracking = {}; // { email: { delivered: count, clicked: count } }
 // Allow requests from your frontend origin
@@ -288,19 +288,19 @@ const isValidEmail = (email) => {
 
 // Endpoint to set dynamic email content
 app.post('/send-email-content', async (req, res) => {
-  const { emailContent, scheduleEmail, scheduleTime, } = req.body;
+  const { emailContent, scheduleEmail, scheduleTime } = req.body;
 
   if (emailContent) {
     dynamicEmailContent = emailContent; // Save the email content for later use
   }
 
-  if (subject) {
+  /*if (subject) {
     dynamicEmailSubject = subject;  // Save the subject for later use
-  }
+  }*/
 
   try {
     console.log('Received email content:', emailContent);
-    console.log('Received subject:', subject);  // Log the subject for debugging
+  //  console.log('Received subject:', subject);  // Log the subject for debugging
     res.status(200).json({ message: 'Email content updated successfully' });
 
   
@@ -378,7 +378,7 @@ app.get('/unsubscribe', async (req, res) => {
 
 // Helper function to send email
 // Helper function to send email and notify the webhook for analytics
-const sendEmailAndNotifyWebhook = async ( senderName,recipientEmail,recipientName, attachments) => {
+const sendEmailAndNotifyWebhook = async ( senderName,recipientEmail,recipientName) => {
   try {
    // const messageId = generateUniqueMessageId();  // Implement this to generate a unique message ID
     // Replace {{name}} placeholder with the actual user name
@@ -388,12 +388,12 @@ const sendEmailAndNotifyWebhook = async ( senderName,recipientEmail,recipientNam
     //const personalizedEmailContent = dynamicEmailContent.replace('{{email}}', recipientEmail);
  // Replace {{name}} placeholder with the actual user name
  //console.log('Sending email with dynamic subject:', subject);
-console.log("attachments",attachments);
+//console.log("attachments",attachments);
  const personalizedEmailContent = dynamicEmailContent.replace('{{name}}', recipientName);
     const sendSmtpEmail = {
       sender: {  email: "lavanya.varshney2104@gmail.com", name: senderName },
       to: [{  email: recipientEmail }],
-      //subject: subject,
+      subject: "hello",
       htmlContent: personalizedEmailContent,
       headers: {
         'X-Tracking-Open': 'true', // Enable open tracking
