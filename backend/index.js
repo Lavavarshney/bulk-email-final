@@ -14,7 +14,6 @@ const bcrypt = require('bcryptjs');
 const app = express();
 const PORT = process.env.PORT || 3000;
 require('dotenv').config();
-const attachmentPaths='';
 const apiKey = process.env.BREVO_API_KEY;
 const emailTracking = {}; // { email: { delivered: count, clicked: count } }
 // Allow requests from your frontend origin
@@ -37,10 +36,8 @@ app.post('/signup', async (req, res) => {
 
     const hashedPassword = await bcrypt.hash(password, 10);
     console.log("Hashed Password:", hashedPassword); // Debugging to check if hash is working correctly
-   
-    // Ensure password is stored correctly
-    const newUser = new User({ name, email, password: hashedPassword });
-    await newUser.save();
+    const newUser = await User.create({ name, email, password: hashedPassword });
+      await newUser.save();
     const token = generateToken(newUser);
 
     res.status(201).json({ message: 'User created successfully', token });
@@ -63,14 +60,7 @@ app.post('/login', async (req, res) => {
     }
     console.log('Password:', password);
   console.log('Hashed Password from DB:', user.password);
-  console.log("User from DB:", user); // Debug user data
-  console.log("Password from Request:", password);
-  console.log("Stored Hashed Password:", user.password);
 
-  // Ensure user has a password before comparing
-  if (!user.password) {
-    return res.status(500).json({ message: 'No password stored for this user' });
-  }
     // Validate password using bcrypt
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
@@ -192,22 +182,22 @@ app.post('/webhook', async(req, res) => {
   if (event === 'delivered') {
     emailTracking[email].delivered += 1;
 
-    console.log(`Email ${email} with Message ID ${messageId} was delivered.`);
+    console.log(Email ${email} with Message ID ${messageId} was delivered.);
     // Perform actions when email is delivered, such as updating a record or notifying the user.
   }
     if(event === 'click')
   {
     emailTracking[email].clicked += 1;
-    console.log(`Email ${email} with Message ID ${messageId} clicked.`);
+    console.log(Email ${email} with Message ID ${messageId} clicked.);
       }
       if(event === 'unique_opened'){
         emailTracking[email].opened += 1;
         
-        console.log(`Email ${email} with Message ID ${messageId} was opened.`);
+        console.log(Email ${email} with Message ID ${messageId} was opened.);
        
       }
       if(event === 'unsubscribed'){
-        console.log(`Email ${email} with Message ID ${messageId} was unsubscribed.`);
+        console.log(Email ${email} with Message ID ${messageId} was unsubscribed.);
         await User.findOneAndUpdate({ email }, { subscribed: false })
       }
   
@@ -243,15 +233,15 @@ mongoose.connect(mongoURI, {
 
 // Setup multer for file upload
 const storage = multer.diskStorage({
-    destination: function (req, file, cb) {
-      cb(null, 'uploads/')
-    },
-    filename: function (req, file, cb) {
-      cb(null, file.originalname)
-    }
-  });
-  
-  const upload = multer({ storage: storage });
+  destination: (req, file, cb) => {
+    cb(null, './uploads');
+  },
+  filename: (req, file, cb) => {
+    cb(null, file.originalname);
+  },
+});
+
+const upload = multer({ storage: storage });
 
 // Helper function to convert schedule time into milliseconds
 const parseScheduleTime = (time) => {
@@ -288,19 +278,13 @@ const isValidEmail = (email) => {
 
 // Endpoint to set dynamic email content
 app.post('/send-email-content', async (req, res) => {
-  const { emailContent, scheduleEmail, scheduleTime, subject, } = req.body;
-
+  const { emailContent, scheduleEmail, scheduleTime } = req.body;
   if (emailContent) {
     dynamicEmailContent = emailContent; // Save the email content for later use
-  }
-
-  if (subject) {
-    dynamicEmailSubject = subject;  // Save the subject for later use
-  }
+  } 
 
   try {
     console.log('Received email content:', emailContent);
-    console.log('Received subject:', subject);  // Log the subject for debugging
     res.status(200).json({ message: 'Email content updated successfully' });
 
   
@@ -314,7 +298,7 @@ app.get('/open-rate',async (req, res) => {
   const rates = Object.entries(emailTracking).map(([email, { delivered, opened }]) => {
     const effectiveDelivered = delivered || totalUsers; 
     const openRate = effectiveDelivered > 0 ? ((opened / effectiveDelivered) * 100).toFixed(2) : 0;
-    return { email, delivered: effectiveDelivered , opened, openRate: `${openRate}%` };
+    return { email, delivered: effectiveDelivered , opened, openRate: ${openRate}% };
   });
 
   res.status(200).json(rates);
@@ -325,7 +309,7 @@ app.get('/click-rate', async (req, res) => {
   const rates = Object.entries(emailTracking).map(([email, { delivered, clicked }]) => {
     const effectiveDelivered = delivered || totalUsers; // Fallback to total user count if delivered is 0
     const clickRate = effectiveDelivered > 0 ? ((clicked / effectiveDelivered) * 100).toFixed(2) : 0;
-    return { email, delivered: effectiveDelivered, clicked, clickRate: `${clickRate}%` };
+    return { email, delivered: effectiveDelivered, clicked, clickRate: ${clickRate}% };
   });
 
   res.status(200).json(rates);
@@ -351,7 +335,7 @@ app.get('/unsubscribe', async (req, res) => {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    res.status(200).json({ message: `You have successfully unsubscribed from our emails.` });
+    res.status(200).json({ message: You have successfully unsubscribed from our emails. });
   } catch (error) {
     console.error('Error unsubscribing user:', error);
     res.status(500).json({ message: 'Error processing the unsubscribe request.' });
@@ -361,7 +345,7 @@ app.get('/unsubscribe', async (req, res) => {
 
 // Helper function to send email
 // Helper function to send email and notify the webhook for analytics
-const sendEmailAndNotifyWebhook = async ( senderName,recipientEmail,recipientName,attachments) => {
+const sendEmailAndNotifyWebhook = async ( senderName,recipientEmail,recipientName) => {
   try {
    // const messageId = generateUniqueMessageId();  // Implement this to generate a unique message ID
     // Replace {{name}} placeholder with the actual user name
@@ -370,25 +354,17 @@ const sendEmailAndNotifyWebhook = async ( senderName,recipientEmail,recipientNam
     //const personalizedEmailContent = dynamicEmailContent
     //const personalizedEmailContent = dynamicEmailContent.replace('{{email}}', recipientEmail);
  // Replace {{name}} placeholder with the actual user name
- //console.log('Sending email with dynamic subject:', subject);
-console.log("attachments in smtp mail",attachments);
  const personalizedEmailContent = dynamicEmailContent.replace('{{name}}', recipientName);
     const sendSmtpEmail = {
       sender: {  email: "lavanya.varshney2104@gmail.com", name: senderName },
       to: [{  email: recipientEmail }],
-      subject: "hello",
+      subject: 'Welcome Email',
       htmlContent: personalizedEmailContent,
       headers: {
         'X-Tracking-Open': 'true', // Enable open tracking
         'X-Tracking-Click': 'true' // Enable click tracking (if needed)
       },
-     attachments: attachments.map(attachment => ({
-        url: attachment.path, // Path to the file
-        name: attachment.originalname // Original file name
-      })),
     };
-
-  
 
     const emailResponse = await apiInstance.sendTransacEmail(sendSmtpEmail);
     console.log('Email sent:', emailResponse);
@@ -403,7 +379,7 @@ console.log("attachments in smtp mail",attachments);
 
     // Send the email analytics data to your webhook
     await axios.post('http://localhost:3000/webhook', webhookData);
-    console.log(`Webhook notified for email ${recipientEmail} with Message ID ${messageId}`);*/
+    console.log(Webhook notified for email ${recipientEmail} with Message ID ${messageId});*/
 
   } catch (error) {
     console.error('Error sending email ', error);
@@ -424,19 +400,12 @@ const tokenWithoutBearer = token.startsWith('Bearer ') ? token.split(' ')[1] : t
   } catch (error) {
     return res.status(401).json({ message: 'Invalid or expired token' });
   }
-  const { emailList, scheduleEmail, scheduleTime, subject} = req.body; // Add scheduling options
-console.log('Request Body:', req.body);
-
+  const { emailList, scheduleEmail, scheduleTime} = req.body; // Add scheduling options
   console.log("emailList", emailList);
-  console.log("subject",subject);
   const emailContent = req.body.emailContent; // Access the email content
   console.log('Email content received:', emailContent);
 
-  dynamicEmailContent = emailContent;
-  if (!subject) {
-    return res.status(400).json({ message: 'Email subject is required.' });
-  } // Set the email content
-  console.log("subject",subject);
+  dynamicEmailContent = emailContent; // Set the email content
   if (!Array.isArray(emailList) || emailList.length === 0) {
     return res.status(400).json({ message: 'Invalid email list provided.' });
   }
@@ -472,12 +441,12 @@ console.log('Request Body:', req.body);
         });
        
         await newUser.save();
-        console.log(`User added to database: ${name}, ${email}`);
+        console.log(User added to database: ${name}, ${email});
       }
       
       else {
         // Log to the console instead of alert
-        throw new Error(`User already exists: ${name}, ${email}`);
+        throw new Error(User already exists: ${name}, ${email});
   
        
       }
@@ -487,15 +456,15 @@ console.log('Request Body:', req.body);
         const delay = parseScheduleTime(scheduleTime);
         if (delay !== null) {
           setTimeout(async () => {
-            await sendEmailAndNotifyWebhook(decoded.name,email,name, subject);
-            console.log(`Scheduled email sent to ${email} after ${scheduleTime}`);
+            await sendEmailAndNotifyWebhook(decoded.name,email,name);
+            console.log(Scheduled email sent to ${email} after ${scheduleTime});
           }, delay);
         } else {
-          console.log(`Invalid schedule time for ${email}. Email not scheduled.`);
+          console.log(Invalid schedule time for ${email}. Email not scheduled.);
         }
       } else {
         // Send email immediately if no scheduling is set
-        await sendEmailAndNotifyWebhook(decoded.name,email,name, subject);
+        await sendEmailAndNotifyWebhook(decoded.name,email,name);
       }
     });
 
@@ -520,11 +489,12 @@ const checkEmailContent = (req, res, next) => {
   }
   next();
 };
-app.post('/upload-csv', upload.single('csvFile'), async (req, res) => {
-    if (!req.file) {
-      return res.status(400).send('No file uploaded.');
-    }
-  
+// Route to upload CSV file and create a campaign
+ app.post('/upload-csv',  upload.single('csvFile'), async (req, res) => {
+  const token = req.headers['authorization'];  // Get the token from the headers
+  if (!token) {
+    return res.status(400).json({ message: 'No token provided' });
+  }
 // Remove "Bearer " prefix if present
 console.log(token);
 const tokenWithoutBearer = token.startsWith('Bearer ') ? token.split(' ')[1] : token;
@@ -534,22 +504,20 @@ const tokenWithoutBearer = token.startsWith('Bearer ') ? token.split(' ')[1] : t
   } catch (error) {
     return res.status(401).json({ message: 'Invalid or expired token' });
   }
-
+  if (!req.file) {
+    return res.status(400).send('No file uploaded.');
+  }
   const emailContent = req.body.emailContent; // Access the email content
   console.log('Email content received:', emailContent);
 
   dynamicEmailContent = emailContent; // Set the email content
   console.log('File received:', req.file);
- // const filePath = req.files.csvFile[0].path; // Get the path of the uploaded CSV file
+  const filePath = req.file.path;
   const validUsers = [];
   const invalidUsers = [];
- // const csvFile = req.files['csvFile'][0];
-  //const attachments = req.files['attachments'];
- // console.log("csvFile",csvFile)
-  //console.log("attachments",attachments)
+ 
   // Parse the CSV file
   const rows = [];
-  const filePath = req.file.path; 
   fs.createReadStream(filePath)
     .pipe(csvParser({
       separator: ',',  // Specify the delimiter (comma)
@@ -579,7 +547,7 @@ const tokenWithoutBearer = token.startsWith('Bearer ') ? token.split(' ')[1] : t
           if (cleanedEmail !== "lavanya.varshney2104@gmail.com") {
           const existingUser = await User.findOne({ email: cleanedEmail });
           if (existingUser) {
-            console.log(`Duplicate email found: ${cleanedEmail}`);
+            console.log(Duplicate email found: ${cleanedEmail});
             continue; // Skip if the email already exists
           }
         
@@ -591,15 +559,15 @@ const tokenWithoutBearer = token.startsWith('Bearer ') ? token.split(' ')[1] : t
           const delay = parseScheduleTime(req.body.scheduleTime);
           if (delay !== null) {
             setTimeout(async () => {
-              await sendEmailAndNotifyWebhook(decoded.name, cleanedEmail,cleanedName,attachments);
-              console.log(`Scheduled email sent to ${cleanedEmail} after ${req.body.scheduleTime}`);
+              await sendEmailAndNotifyWebhook(decoded.name, cleanedEmail,cleanedName);
+              console.log(Scheduled email sent to ${cleanedEmail} after ${req.body.scheduleTime});
             }, delay);
           } else {
-            console.log(`Invalid schedule time for ${cleanedEmail}. Email not scheduled.`);
+            console.log(Invalid schedule time for ${cleanedEmail}. Email not scheduled.);
           }
         } else {
           // Send email immediately if no schedule is set
-          await sendEmailAndNotifyWebhook(decoded.name, cleanedEmail,cleanedName,attachments);
+          await sendEmailAndNotifyWebhook(decoded.name, cleanedEmail,cleanedName);
         }
         
         } catch (error) {
@@ -637,5 +605,5 @@ const tokenWithoutBearer = token.startsWith('Bearer ') ? token.split(' ')[1] : t
 
 // Start the server
 app.listen(PORT, () => {
-  console.log(`Server is running on http://localhost:${PORT}`);
-});
+  console.log(Server is running on http://localhost:${PORT});
+}); 
