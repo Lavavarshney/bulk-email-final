@@ -288,7 +288,7 @@ const isValidEmail = (email) => {
 
 // Endpoint to set dynamic email content
 app.post('/send-email-content', async (req, res) => {
-  const { emailContent, scheduleEmail, scheduleTime, subject, } = req.body;
+  const { emailContent, scheduleEmail, scheduleTime, } = req.body;
 
   if (emailContent) {
     dynamicEmailContent = emailContent; // Save the email content for later use
@@ -310,8 +310,8 @@ app.post('/send-email-content', async (req, res) => {
   }
 });
 app.get('/open-rate', async (req, res) => {
-    const token = req.headers['authorization']?.split(' ')[1]; // Extract the token from the Authorization header
-  
+    const token = req.headers['Authorization']?.split(' ')[1]; // Extract the token from the Authorization header
+   console.log(token)
     if (!token) {
       return res.status(401).json({ message: 'No token provided' });
     }
