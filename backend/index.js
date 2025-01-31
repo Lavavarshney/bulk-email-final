@@ -311,7 +311,7 @@ app.post('/send-email-content', async (req, res) => {
 });
 app.get('/open-rate', async (req, res) => {
     const token = req.headers['Authorization']?.split(' ')[1]; // Extract the token from the Authorization header
-   console.log(token)
+   console.log("token",token)
     if (!token) {
       return res.status(401).json({ message: 'No token provided' });
     }
