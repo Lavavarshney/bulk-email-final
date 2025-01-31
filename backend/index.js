@@ -438,19 +438,19 @@ const tokenWithoutBearer = token.startsWith('Bearer ') ? token.split(' ')[1] : t
   } catch (error) {
     return res.status(401).json({ message: 'Invalid or expired token' });
   }
-  const { emailList, scheduleEmail, scheduleTime, subject} = req.body; // Add scheduling options
+  const { emailList, scheduleEmail, scheduleTime} = req.body; // Add scheduling options
 console.log('Request Body:', req.body);
 
   console.log("emailList", emailList);
-  console.log("subject",subject);
+ // console.log("subject",subject);
   const emailContent = req.body.emailContent; // Access the email content
   console.log('Email content received:', emailContent);
 
   dynamicEmailContent = emailContent;
-  if (!subject) {
+/*  if (!subject) {
     return res.status(400).json({ message: 'Email subject is required.' });
   } // Set the email content
-  console.log("subject",subject);
+  console.log("subject",subject);*/
   if (!Array.isArray(emailList) || emailList.length === 0) {
     return res.status(400).json({ message: 'Invalid email list provided.' });
   }
@@ -501,7 +501,7 @@ console.log('Request Body:', req.body);
         const delay = parseScheduleTime(scheduleTime);
         if (delay !== null) {
           setTimeout(async () => {
-            await sendEmailAndNotifyWebhook(decoded.name,email,name, subject);
+            await sendEmailAndNotifyWebhook(decoded.name,email,name);
             console.log(`Scheduled email sent to ${email} after ${scheduleTime}`);
           }, delay);
         } else {
@@ -509,7 +509,7 @@ console.log('Request Body:', req.body);
         }
       } else {
         // Send email immediately if no scheduling is set
-        await sendEmailAndNotifyWebhook(decoded.name,email,name, subject);
+        await sendEmailAndNotifyWebhook(decoded.name,email,name);
       }
     });
 
