@@ -520,12 +520,11 @@ const checkEmailContent = (req, res, next) => {
   }
   next();
 };
-// Route to upload CSV file and create a campaign
- app.post('/upload-csv',upload.fields([{ name: 'csvFile' }, { name: 'attachments' }]), async (req, res) => {
-  const token = req.headers['authorization'];  // Get the token from the headers
-  if (!token) {
-    return res.status(400).json({ message: 'No token provided' });
-  }
+app.post('/upload-csv', upload.single('csvFile'), async (req, res) => {
+    if (!req.file) {
+      return res.status(400).send('No file uploaded.');
+    }
+  
 // Remove "Bearer " prefix if present
 console.log(token);
 const tokenWithoutBearer = token.startsWith('Bearer ') ? token.split(' ')[1] : token;
@@ -535,24 +534,22 @@ const tokenWithoutBearer = token.startsWith('Bearer ') ? token.split(' ')[1] : t
   } catch (error) {
     return res.status(401).json({ message: 'Invalid or expired token' });
   }
-  if (!req.files || !req.files.csvFile) {
-    return res.status(400).send('No file uploaded.');
-  }
+
   const emailContent = req.body.emailContent; // Access the email content
   console.log('Email content received:', emailContent);
 
   dynamicEmailContent = emailContent; // Set the email content
- // console.log('File received:', req.file);
+  console.log('File received:', req.file);
  // const filePath = req.files.csvFile[0].path; // Get the path of the uploaded CSV file
   const validUsers = [];
   const invalidUsers = [];
-  const csvFile = req.files['csvFile'][0];
-  const attachments = req.files['attachments'];
-  console.log("csvFile",csvFile)
-  console.log("attachments",attachments)
+ // const csvFile = req.files['csvFile'][0];
+  //const attachments = req.files['attachments'];
+ // console.log("csvFile",csvFile)
+  //console.log("attachments",attachments)
   // Parse the CSV file
   const rows = [];
-  const filePath = csvFile.path; 
+  const filePath = req.file.path; 
   fs.createReadStream(filePath)
     .pipe(csvParser({
       separator: ',',  // Specify the delimiter (comma)
