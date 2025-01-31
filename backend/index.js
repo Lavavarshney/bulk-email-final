@@ -399,10 +399,7 @@ console.log("attachments",attachments);
         'X-Tracking-Open': 'true', // Enable open tracking
         'X-Tracking-Click': 'true' // Enable click tracking (if needed)
       },
-      attachments: attachments.map(attachment => ({
-        url: attachment.path, // Path to the file
-        name: attachment.originalname // Original file name
-      })),
+ 
     };
     const emailResponse = await apiInstance.sendTransacEmail(sendSmtpEmail);
     console.log('Email sent:', emailResponse);
