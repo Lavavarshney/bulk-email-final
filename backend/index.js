@@ -329,7 +329,7 @@ console.log("Email Tracking Data: ", emailTracking);
 
 
     console.log('User open rates:', userOpenRates);
-    return res.status(200).json(userOpenRates);
+    return res.status(200).json(emailTracking);
     
   });
 
