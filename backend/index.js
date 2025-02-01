@@ -320,7 +320,7 @@ app.get('/open-rate', async (req, res) => {
 
     // Filter the emailTracking data for the current user if needed
     const userOpenRates = Object.entries(emailTracking)
-      .map(([messageId, { delivered, opened }]) => {
+      .map(([messageId, {email, delivered, opened }]) => {
         // Ensure email exists in tracking data
         const effectiveEmail = email || 'Unknown Email';
         const effectiveDelivered = delivered || 0; // Default to 0 if missing
