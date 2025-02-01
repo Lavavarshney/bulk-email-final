@@ -187,31 +187,26 @@ app.post('/webhook', async(req, res) => {
   console.log(eventData);
   const { event, email, 'message-id': messageId } = eventData;
   
-  if (!emailTracking[email]) {
-    emailTracking[email] = { delivered: 0, clicked: 0, opened: 0 };
+   // 🔹 If email is missing in "opened" event, try retrieving it from message-id
+  const trackingData = emailTracking[messageId];
+  if (!trackingData) {
+    console.warn(`No tracking data found for Message ID: ${messageId}`);
+    return res.status(400).json({ message: "Unknown message-id" });
   }
-  if (event === 'delivered') {
-    emailTracking[email].delivered += 1;
 
-    console.log(`Email ${email} with Message ID ${messageId} was delivered.`);
-    // Perform actions when email is delivered, such as updating a record or notifying the user.
+  // 🔹 Handle email events
+  if (event === 'delivered') {
+    trackingData.delivered += 1;
+    console.log(`✅ Delivered: ${trackingData.email}`);
+  } 
+  if (event === 'click') {
+    trackingData.clicked += 1;
+    console.log(`✅ Clicked: ${trackingData.email}`);
+  } 
+  if (event === 'unique_opened') {
+    trackingData.opened += 1;
+    console.log(`✅ Opened: ${trackingData.email} (Count: ${trackingData.opened})`);
   }
-    if(event === 'click')
-  {
-    emailTracking[email].clicked += 1;
-    console.log(`Email ${email} with Message ID ${messageId} clicked.`);
-      }
-      if(event === 'unique_opened'){
-        emailTracking[email].opened += 1;
-        
-        console.log(`Email ${email} with Message ID ${messageId} was opened.`);
-       console.log(`After Increment - Opened Count for ${email}:`, emailTracking[email].opened);
-       console.log("Updated Email Tracking Data:", JSON.stringify(emailTracking, null, 2));
-      }
-      if(event === 'unsubscribed'){
-        console.log(`Email ${email} with Message ID ${messageId} was unsubscribed.`);
-        await User.findOneAndUpdate({ email }, { subscribed: false })
-      }
   
   res.status(200).send('Webhook received');
 });
@@ -325,15 +320,22 @@ app.get('/open-rate', async (req, res) => {
  // console.log("Looking for user email:", userEmail);
 //console.log("Available emails in tracking:", Object.keys(emailTracking));
       // Filter the emailTracking data for the current user
-      const userOpenRates = Object.entries(emailTracking)
-       // .filter(([email]) => email === userEmail) // Only include the current user's data
-        .map(([email, { delivered, opened }]) => {
-          const effectiveDelivered = delivered || 0; // Use 0 if no emails were delivered
-          const openRate = effectiveDelivered > 0 ? ((opened / effectiveDelivered) * 100).toFixed(2) : 0;
-          return { email, delivered: effectiveDelivered, opened, openRate: `${openRate}%` };
-        });
-       console.log('User  open rates:', userOpenRates); // Log the user open rates
-        res.status(200).json(userOpenRates);
+  const userOpenRates = Object.entries(emailTracking)
+  .map(([messageId, { email, delivered, opened }]) => {
+    // Ensure email exists in tracking data
+    const effectiveEmail = email || 'Unknown Email';
+    const effectiveDelivered = delivered || 0; // Default to 0 if missing
+
+    // Calculate open rate only if emails were delivered
+    const openRate = effectiveDelivered > 0 
+      ? ((opened / effectiveDelivered) * 100).toFixed(2) 
+      : "0.00";
+
+    return { email: effectiveEmail, delivered: effectiveDelivered, opened, openRate: `${openRate}%` };
+  });
+
+console.log('User open rates:', userOpenRates);
+res.status(200).json(userOpenRates);
     } catch (error) {
       console.error('Error verifying token:', error);
       res.status(401).json({ message: 'Invalid token' });
