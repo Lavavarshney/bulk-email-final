@@ -185,7 +185,7 @@ const processedEvents = new Set();
 app.post('/webhook', async(req, res) => {
   const eventData = req.body;
   console.log(eventData);
-  const { event, email, 'message-id': messageId, contact_id } = eventData;
+  const { event, email, 'message-id': messageId, contact_id,sender_email } = eventData;
   
    // 🔹 If email is missing in "opened" event, try retrieving it from message-id
 // Initialize tracking for this email if it doesn't exist
@@ -203,15 +203,15 @@ app.post('/webhook', async(req, res) => {
     console.log(`Email ${email} clicked.`);
   } 
 if (event === 'unique_opened') {
-    if (!email || email.trim() === '') {
+    if (!sender_email || sender_email.trim() === '') {
       console.warn(`Skipping event with empty email for Message ID: ${messageId}`);
     } else {
-      console.log(`Email opened: ${email}, Message ID: ${messageId}`);
+      console.log(`Email opened: ${sender_email}, Message ID: ${messageId}`);
       // Increment the opened count in your email tracking data
-      if (emailTracking[email]) {
-        emailTracking[email].opened += 1;
+      if (emailTracking[sender_email]) {
+        emailTracking[sender_email].opened += 1;
       } else {
-        emailTracking[email] = { opened: 1, delivered: 0, clicked: 0 }; // Initialize tracking if needed
+        emailTracking[sender_email] = { opened: 1, delivered: 0, clicked: 0 }; // Initialize tracking if needed
       }
     }
   }
