@@ -202,9 +202,18 @@ app.post('/webhook', async(req, res) => {
     emailTracking[email].clicked += 1;
     console.log(`Email ${email} clicked.`);
   } 
-  if (event === 'unique_opened') {
-    emailTracking[email].opened += 1;
-    console.log(`After Increment - Opened Count for ${email}:`, emailTracking[email].opened);
+if (event === 'unique_opened') {
+    if (!email || email.trim() === '') {
+      console.warn(`Skipping event with empty email for Message ID: ${messageId}`);
+    } else {
+      console.log(`Email opened: ${email}, Message ID: ${messageId}`);
+      // Increment the opened count in your email tracking data
+      if (emailTracking[email]) {
+        emailTracking[email].opened += 1;
+      } else {
+        emailTracking[email] = { opened: 1, delivered: 0, clicked: 0 }; // Initialize tracking if needed
+      }
+    }
   }
   
   res.status(200).send('Webhook received');
