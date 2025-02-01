@@ -204,7 +204,7 @@ app.post('/webhook', async(req, res) => {
         emailTracking[email].opened += 1;
         
         console.log(`Email ${email} with Message ID ${messageId} was opened.`);
-       
+       console.log(`After Increment - Opened Count for ${email}:`, emailTracking[email].opened);
       }
       if(event === 'unsubscribed'){
         console.log(`Email ${email} with Message ID ${messageId} was unsubscribed.`);
@@ -310,7 +310,7 @@ app.post('/send-email-content', async (req, res) => {
   }
 });
 app.get('/open-rate', async (req, res) => {
-  console.log(req.headers); // Log all headers
+  //console.log(req.headers); // Log all headers
     const token =await  req.headers['authorization']?.split(' ')[1]; // Extract the token from the Authorization header
    console.log("token",token)
     if (!token) {
