@@ -186,10 +186,7 @@ app.post('/webhook', async(req, res) => {
   const eventData = req.body;
   console.log(eventData);
   const { event, email, 'message-id': messageId } = eventData;
-  if (!email || email.trim() === '') {
-  console.warn(`Skipping event with empty email: ${messageId}`);
-  return; // Don't process further
-}
+  
   if (!emailTracking[email]) {
     emailTracking[email] = { delivered: 0, clicked: 0, opened: 0 };
   }
