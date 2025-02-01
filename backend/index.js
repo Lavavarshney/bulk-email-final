@@ -314,12 +314,13 @@ app.get('/open-rate', async (req, res) => {
     }
   
   
-    // const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY); // Verify and decode the token
-    // const userEmail = decoded.email; // Extract the user's email from the token
+     const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY); // Verify and decode the token
+    const userEmail = decoded.email; // Extract the user's email from the token
     // console.log("Looking for user email:", userEmail);
 console.log("Email Tracking Data: ", emailTracking);
     // Filter the emailTracking data for the current user if needed
     const userOpenRates = Object.entries(emailTracking)
+  .filter(([senderEmail]) => senderEmail === userEmail) // Only include the current user's data    
   .map(([senderEmail, { delivered, opened }]) => {
     const openRate = delivered > 0 ? ((opened / delivered) * 100).toFixed(2) : "0.00";
     return { email: senderEmail, delivered, opened, openRate: `${openRate}%` };
