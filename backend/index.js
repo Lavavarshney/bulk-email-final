@@ -185,27 +185,26 @@ const processedEvents = new Set();
 app.post('/webhook', async(req, res) => {
   const eventData = req.body;
   console.log(eventData);
-  const { event, email, 'message-id': messageId } = eventData;
+  const { event, email, 'message-id': messageId,, contact_id } = eventData;
   
    // 🔹 If email is missing in "opened" event, try retrieving it from message-id
-  const trackingData = emailTracking[messageId];
-  if (!trackingData) {
-    console.warn(`No tracking data found for Message ID: ${messageId}`);
-    return res.status(400).json({ message: "Unknown message-id" });
+// Initialize tracking for this email if it doesn't exist
+  if (!emailTracking[email]) {
+    emailTracking[email] = { delivered: 0, clicked: 0, opened: 0 };
   }
 
-  // 🔹 Handle email events
+  // Handle email events
   if (event === 'delivered') {
-    trackingData.delivered += 1;
-    console.log(`✅ Delivered: ${trackingData.email}`);
+    emailTracking[email].delivered += 1;
+    console.log(`Email ${email} delivered.`);
   } 
   if (event === 'click') {
-    trackingData.clicked += 1;
-    console.log(`✅ Clicked: ${trackingData.email}`);
+    emailTracking[email].clicked += 1;
+    console.log(`Email ${email} clicked.`);
   } 
   if (event === 'unique_opened') {
-    trackingData.opened += 1;
-    console.log(`✅ Opened: ${trackingData.email} (Count: ${trackingData.opened})`);
+    emailTracking[email].opened += 1;
+    console.log(`After Increment - Opened Count for ${email}:`, emailTracking[email].opened);
   }
   
   res.status(200).send('Webhook received');
@@ -314,28 +313,29 @@ app.get('/open-rate', async (req, res) => {
       return res.status(401).json({ message: 'No token provided' });
     }
   
-    try {
-     // const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY); // Verify and decode the token
-     // const userEmail = decoded.email; // Extract the user's email from the token
- // console.log("Looking for user email:", userEmail);
-//console.log("Available emails in tracking:", Object.keys(emailTracking));
-      // Filter the emailTracking data for the current user
-  const userOpenRates = Object.entries(emailTracking)
-  .map(([messageId, { email, delivered, opened }]) => {
-    // Ensure email exists in tracking data
-    const effectiveEmail = email || 'Unknown Email';
-    const effectiveDelivered = delivered || 0; // Default to 0 if missing
+  try {
+    // const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY); // Verify and decode the token
+    // const userEmail = decoded.email; // Extract the user's email from the token
+    // console.log("Looking for user email:", userEmail);
 
-    // Calculate open rate only if emails were delivered
-    const openRate = effectiveDelivered > 0 
-      ? ((opened / effectiveDelivered) * 100).toFixed(2) 
-      : "0.00";
+    // Filter the emailTracking data for the current user if needed
+    const userOpenRates = Object.entries(emailTracking)
+      .map(([messageId, { email, delivered, opened }]) => {
+        // Ensure email exists in tracking data
+        const effectiveEmail = email || 'Unknown Email';
+        const effectiveDelivered = delivered || 0; // Default to 0 if missing
 
-    return { email: effectiveEmail, delivered: effectiveDelivered, opened, openRate: `${openRate}%` };
-  });
+        // Calculate open rate only if emails were delivered
+        const openRate = effectiveDelivered > 0
+          ? ((opened / effectiveDelivered) * 100).toFixed(2)
+          : "0.00"; // Return 0.00 if no emails were delivered
 
-console.log('User open rates:', userOpenRates);
-res.status(200).json(userOpenRates);
+        return { email: effectiveEmail, delivered: effectiveDelivered, opened, openRate: `${openRate}%` };
+      })
+      .filter((rate) => rate.email !== 'Unknown Email'); // Optionally filter out unknown emails
+
+    console.log('User open rates:', userOpenRates);
+    return res.status(200).json(userOpenRates);
     } catch (error) {
       console.error('Error verifying token:', error);
       res.status(401).json({ message: 'Invalid token' });
