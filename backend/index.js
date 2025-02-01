@@ -326,14 +326,14 @@ app.get('/open-rate', async (req, res) => {
     // const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY); // Verify and decode the token
     // const userEmail = decoded.email; // Extract the user's email from the token
     // console.log("Looking for user email:", userEmail);
-
+ console.log("Email Tracking Data: ", emailTracking);
     // Filter the emailTracking data for the current user if needed
     const userOpenRates = Object.entries(emailTracking)
       .map(([messageId, {email, delivered, opened }]) => {
         // Ensure email exists in tracking data
         const effectiveEmail = email || 'Unknown Email';
         const effectiveDelivered = delivered || 0; // Default to 0 if missing
-
+ console.log(`Message ID: ${messageId}, Email: ${email}, Delivered: ${delivered}, Opened: ${opened}`);
         // Calculate open rate only if emails were delivered
         const openRate = effectiveDelivered > 0
           ? ((opened / effectiveDelivered) * 100).toFixed(2)
