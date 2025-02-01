@@ -320,19 +320,12 @@ app.get('/open-rate', async (req, res) => {
 console.log("Email Tracking Data: ", emailTracking);
     // Filter the emailTracking data for the current user if needed
     const userOpenRates = Object.entries(emailTracking)
-      .map(([{sender_email, delivered, opened }]) => {
-        // Ensure email exists in tracking data
-        const effectiveEmail = sender_email || 'Unknown Email';
-        const effectiveDelivered = delivered || 0; // Default to 0 if missing
- console.log(`Message ID: ${messageId}, Email: ${sender_email}, Delivered: ${delivered}, Opened: ${opened}`);
-        // Calculate open rate only if emails were delivered
-        const openRate = effectiveDelivered > 0
-          ? ((opened / effectiveDelivered) * 100).toFixed(2)
-          : "0.00"; // Return 0.00 if no emails were delivered
- 
-        return { email: effectiveEmail, delivered: effectiveDelivered, opened, openRate: `${openRate}%` };
-      })
-      
+  .map(([senderEmail, { delivered, opened }]) => {
+    const openRate = delivered > 0 ? ((opened / delivered) * 100).toFixed(2) : "0.00";
+    return { email: senderEmail, delivered, opened, openRate: `${openRate}%` };
+  })
+  .filter(rate => rate.email !== 'Unknown Email');
+
 
     console.log('User open rates:', userOpenRates);
     return res.status(200).json(userOpenRates);
