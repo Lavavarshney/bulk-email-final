@@ -205,6 +205,7 @@ app.post('/webhook', async(req, res) => {
         
         console.log(`Email ${email} with Message ID ${messageId} was opened.`);
        console.log(`After Increment - Opened Count for ${email}:`, emailTracking[email].opened);
+       console.log("Updated Email Tracking Data:", JSON.stringify(emailTracking, null, 2));
       }
       if(event === 'unsubscribed'){
         console.log(`Email ${email} with Message ID ${messageId} was unsubscribed.`);
