@@ -189,31 +189,22 @@ app.post('/webhook', async(req, res) => {
   
    // 🔹 If email is missing in "opened" event, try retrieving it from message-id
 // Initialize tracking for this email if it doesn't exist
-  if (!emailTracking[email]) {
-    emailTracking[email] = { delivered: 0, clicked: 0, opened: 0 };
+  if (!emailTracking[sender_email]) {
+    emailTracking[sender_email] = { delivered: 0, clicked: 0, opened: 0 };
   }
 
   // Handle email events
   if (event === 'delivered') {
-    emailTracking[email].delivered += 1;
+    emailTracking[sender_email].delivered += 1;
     console.log(`Email ${email} delivered.`);
   } 
   if (event === 'click') {
-    emailTracking[email].clicked += 1;
+    emailTracking[sender_email].clicked += 1;
     console.log(`Email ${email} clicked.`);
   } 
 if (event === 'unique_opened') {
-    if (!sender_email || sender_email.trim() === '') {
-      console.warn(`Skipping event with empty email for Message ID: ${messageId}`);
-    } else {
-      console.log(`Email opened: ${sender_email}, Message ID: ${messageId}`);
-      // Increment the opened count in your email tracking data
-      if (emailTracking[sender_email]) {
-        emailTracking[sender_email].opened += 1;
-      } else {
-        emailTracking[sender_email] = { opened: 1, delivered: 0, clicked: 0 }; // Initialize tracking if needed
-      }
-    }
+      emailTracking[sender_email].opened += 1;
+    console.log(`Email ${email} opened.`);
   }
   
   res.status(200).send('Webhook received');
@@ -326,7 +317,7 @@ app.get('/open-rate', async (req, res) => {
     // const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY); // Verify and decode the token
     // const userEmail = decoded.email; // Extract the user's email from the token
     // console.log("Looking for user email:", userEmail);
- console.log("Email Tracking Data: ", emailTracking);
+console.log("Email Tracking Data: ", emailTracking);
     // Filter the emailTracking data for the current user if needed
     const userOpenRates = Object.entries(emailTracking)
       .map(([messageId, {email, delivered, opened }]) => {
@@ -338,7 +329,7 @@ app.get('/open-rate', async (req, res) => {
         const openRate = effectiveDelivered > 0
           ? ((opened / effectiveDelivered) * 100).toFixed(2)
           : "0.00"; // Return 0.00 if no emails were delivered
-
+ 
         return { email: effectiveEmail, delivered: effectiveDelivered, opened, openRate: `${openRate}%` };
       })
       .filter((rate) => rate.email !== 'Unknown Email'); // Optionally filter out unknown emails
