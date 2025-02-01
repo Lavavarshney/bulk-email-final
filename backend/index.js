@@ -313,7 +313,7 @@ app.get('/open-rate', async (req, res) => {
       return res.status(401).json({ message: 'No token provided' });
     }
   
-  try {
+  
     // const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY); // Verify and decode the token
     // const userEmail = decoded.email; // Extract the user's email from the token
     // console.log("Looking for user email:", userEmail);
@@ -336,10 +336,7 @@ app.get('/open-rate', async (req, res) => {
 
     console.log('User open rates:', userOpenRates);
     return res.status(200).json(userOpenRates);
-    } catch (error) {
-      console.error('Error verifying token:', error);
-      res.status(401).json({ message: 'Invalid token' });
-    }
+    
   });
 
 app.get('/click-rate', async (req, res) => {
