@@ -509,6 +509,7 @@ console.log('Request Body:', req.body);
           setTimeout(async () => {
             await sendEmailAndNotifyWebhook(decoded.name,email,name);
             user.emailsSent += 1; 
+            await user.save(); // Save the updated user instance
            console.log("emailSent count",user.emailsSent);
             console.log(`Scheduled email sent to ${email} after ${scheduleTime}`);
           }, delay);
@@ -519,6 +520,7 @@ console.log('Request Body:', req.body);
         // Send email immediately if no scheduling is set
         await sendEmailAndNotifyWebhook(decoded.name,email,name);
         user.emailsSent += 1; 
+        await user.save(); // Save the updated user instance
         console.log("emailSent count",user.emailsSent);
       }
     });
