@@ -432,7 +432,7 @@ const tokenWithoutBearer = token.startsWith('Bearer ') ? token.split(' ')[1] : t
     return res.status(401).json({ message: 'Invalid or expired token' });
   }
   const { emailList, scheduleEmail, scheduleTime} = req.body; // Add scheduling options
-console.log('Request Body:', req.body);
+//console.log('Request Body:', req.body);
 
   console.log("emailList", emailList);
  // console.log("subject",subject);
@@ -468,7 +468,7 @@ console.log('Request Body:', req.body);
   if (!user) {
     return res.status(404).json({ message: 'User  not found' });
   }
-
+console.log(`User 's emailsSent before sending: ${user.emailsSent}`);
   const emailLimit = 2; // Set your email limit here
   if (user.emailsSent >= emailLimit) {
     // Redirect to Lemon Squeezy checkout
