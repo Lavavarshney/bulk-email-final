@@ -469,7 +469,7 @@ const tokenWithoutBearer = token.startsWith('Bearer ') ? token.split(' ')[1] : t
     return res.status(404).json({ message: 'User  not found' });
   }
 console.log(`User 's emailsSent before sending: ${user.emailsSent}`);
-  const emailLimit = 2; // Set your email limit here
+   const emailLimit = 10; 
   if (user.emailsSent >= emailLimit) {
     // Redirect to Lemon Squeezy checkout
     const checkoutUrl = `https://myappstore.lemonsqueezy.com/buy/45f80958-7809-49ef-8a3f-5aa75851adc3`; // Replace with your actual checkout URL
