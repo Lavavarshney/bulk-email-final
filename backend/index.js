@@ -488,6 +488,12 @@ console.log('Request Body:', req.body);
   
        
       }
+   const emailLimit = 2; // Set your email limit here
+  if (User.emailsSent >= emailLimit) {
+    // Redirect to Lemon Squeezy checkout
+    const checkoutUrl = `https://myappstore.lemonsqueezy.com/buy/45f80958-7809-49ef-8a3f-5aa75851adc3`; // Replace with your actual checkout URL
+    return res.status(402).json({ message: 'Email limit reached. Please purchase a plan.', checkoutUrl });
+  }
     }
       if (scheduleEmail && scheduleTime) {
         // If scheduling is enabled, calculate delay and schedule the email
@@ -495,6 +501,7 @@ console.log('Request Body:', req.body);
         if (delay !== null) {
           setTimeout(async () => {
             await sendEmailAndNotifyWebhook(decoded.name,email,name);
+            User.emailsSent += 1; 
             console.log(`Scheduled email sent to ${email} after ${scheduleTime}`);
           }, delay);
         } else {
@@ -503,6 +510,7 @@ console.log('Request Body:', req.body);
       } else {
         // Send email immediately if no scheduling is set
         await sendEmailAndNotifyWebhook(decoded.name,email,name);
+        User.emailsSent += 1; 
       }
     });
 
