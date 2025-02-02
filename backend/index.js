@@ -463,6 +463,18 @@ console.log('Request Body:', req.body);
   if (validEmails.length === 0) {
     return res.status(400).json({ message: 'No valid emails provided.', invalidEmails });
   }
+    // Retrieve the user instance from the database
+  const user = await User.findOne({ email: decoded.email });
+  if (!user) {
+    return res.status(404).json({ message: 'User  not found' });
+  }
+
+  const emailLimit = 2; // Set your email limit here
+  if (user.emailsSent >= emailLimit) {
+    // Redirect to Lemon Squeezy checkout
+    const checkoutUrl = `https://myappstore.lemonsqueezy.com/buy/45f80958-7809-49ef-8a3f-5aa75851adc3`; // Replace with your actual checkout URL
+    return res.status(402).json({ message: 'Email limit reached. Please purchase a plan.', checkoutUrl });
+  }
 
   try {
     // Process each valid email
@@ -488,12 +500,7 @@ console.log('Request Body:', req.body);
   
        
       }
-   const emailLimit = 2; // Set your email limit here
-  if (user.emailsSent >= emailLimit) {
-    // Redirect to Lemon Squeezy checkout
-    const checkoutUrl = `https://myappstore.lemonsqueezy.com/buy/45f80958-7809-49ef-8a3f-5aa75851adc3`; // Replace with your actual checkout URL
-    return res.status(402).json({ message: 'Email limit reached. Please purchase a plan.', checkoutUrl });
-  }
+
     }
       if (scheduleEmail && scheduleTime) {
         // If scheduling is enabled, calculate delay and schedule the email
