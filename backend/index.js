@@ -372,9 +372,11 @@ app.get('/unsubscribe', async (req, res) => {
 });
 
 app.post('/order_created', (req, res) => {
-  console.log(req.body);
+  console.log("Headers:", req.headers);
+  console.log("Body:", req.body);
   res.status(200).json({ message: "Order received" });
 });
+
 
 // Helper function to send email
 // Helper function to send email and notify the webhook for analytics
