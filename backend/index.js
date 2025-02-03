@@ -473,7 +473,8 @@ const tokenWithoutBearer = token.startsWith('Bearer ') ? token.split(' ')[1] : t
   }
 console.log(`User 's emailsSent before sending: ${user.emailsSent}`);
    const emailLimit = 10; 
-  if (user.emailsSent >= emailLimit) {
+ if (user.emailsSent >= user.emailLimit)
+{
     // Redirect to Lemon Squeezy checkout
     const checkoutUrl = `https://myappstore.lemonsqueezy.com/buy/45f80958-7809-49ef-8a3f-5aa75851adc3`; // Replace with your actual checkout URL
     // Wait for the webhook to upgrade the plan
@@ -685,6 +686,7 @@ const tokenWithoutBearer = token.startsWith('Bearer ') ? token.split(' ')[1] : t
       // Upgrade the user's plan to "paid" and increase their email limit
       user.planStatus = "paid";
       user.emailLimit = 1000; // Set new limit for paid users
+      user.emailsSent=0;
       await user.save();
 
       console.log(`User ${user.email} upgraded to paid plan. New limit: ${user.emailLimit}`);
