@@ -476,7 +476,12 @@ console.log(`User 's emailsSent before sending: ${user.emailsSent}`);
   if (user.emailsSent >= emailLimit) {
     // Redirect to Lemon Squeezy checkout
     const checkoutUrl = `https://myappstore.lemonsqueezy.com/buy/45f80958-7809-49ef-8a3f-5aa75851adc3`; // Replace with your actual checkout URL
-    return res.status(402).json({ message: 'Email limit reached. Please purchase a plan.', checkoutUrl });
+    // Wait for the webhook to upgrade the plan
+    console.log("Email limit reached. Waiting for payment confirmation...");
+    return res.status(402).json({
+      message: 'Email limit reached. Please purchase a plan.',
+      checkoutUrl
+    });
   }
 
   try {
@@ -666,25 +671,30 @@ const tokenWithoutBearer = token.startsWith('Bearer ') ? token.split(' ')[1] : t
 });
 
   app.post('/api/webhook', async (req, res) => {
-  console.log("Headers:", req.headers);
-  console.log("Body:", req.body);
-  
-  // Assuming the webhook notification includes an email list or trigger info
-  const { emailList, scheduleEmail, scheduleTime, emailContent } = req.body;
+ try {
+    const event = req.body;
 
-  // If webhook contains the required info, trigger email sending
-  if (emailList && emailList.length > 0) {
-    // Call the /send-manual-emails endpoint internally after webhook processing
-    await axios.post('/send-manual-emails', {
-      emailList,
-      scheduleEmail,
-      scheduleTime,
-      emailContent,
-    });
+    if (event && event.meta.event_name === "order_created") {
+      const customerEmail = event.data.attributes.user_email;
 
-    res.status(200).json({ message: "Webhook received, emails will be sent." });
-  } else {
-    res.status(400).json({ message: "Invalid webhook data." });
+      const user = await User.findOne({ email: customerEmail });
+      if (!user) {
+        return res.status(404).json({ message: "User not found." });
+      }
+
+      // Upgrade the user's plan to "paid" and increase their email limit
+      user.planStatus = "paid";
+      user.emailLimit = 1000; // Set new limit for paid users
+      await user.save();
+
+      console.log(`User ${user.email} upgraded to paid plan. New limit: ${user.emailLimit}`);
+      return res.status(200).json({ message: "User upgraded successfully" });
+    }
+
+    res.status(400).json({ message: "Invalid event type" });
+  } catch (error) {
+    console.error("Error processing Lemon Squeezy webhook:", error);
+    res.status(500).json({ message: "Internal Server Error" });
   }
 });
 
