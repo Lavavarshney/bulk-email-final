@@ -372,7 +372,7 @@ app.get('/unsubscribe', async (req, res) => {
   }
 });
 
-app.post('/order_created', (req, res) => {
+app.post('/api/webhook', (req, res) => {
   console.log("Headers:", req.headers);
   console.log("Body:", req.body);
   res.status(200).json({ message: "Order received" });
