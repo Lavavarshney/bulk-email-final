@@ -372,19 +372,31 @@ app.get('/unsubscribe', async (req, res) => {
   }
 });
 
-app.post('/api/webhook', async(req, res) => {
+app.post('/api/webhook', async (req, res) => {
   console.log("Headers:", req.headers);
   console.log("Body:", req.body);
+
   const eventData = req.body;
-  const { event_name, user_name, user_email} = eventData;
-   if (event_name === 'order_created') {
-        const token = req.headers['authorization'];
+
+  // Extract relevant data from the webhook payload
+  const { event_name, data } = eventData; // Extract event name and data
+  const orderId = data.id; // Extract the order ID
+
+  if (event_name === 'order_created') { // Check for the specific event
+    // Extract buyer information from the payload
+    const recipientEmail = data.attributes.user_email; // Extract the buyer's email
+    const recipientName = data.attributes.user_name; // Extract the buyer's name
+
+    // Extract the token from the Authorization header
+    const token = req.headers['authorization'];
     if (!token) {
       return res.status(400).json({ message: 'No token provided' });
     }
-      // Remove "Bearer " prefix if present
+
+    // Remove "Bearer " prefix if present
     const tokenWithoutBearer = token.startsWith('Bearer ') ? token.split(' ')[1] : token;
-      let decoded;
+
+    let decoded;
     try {
       decoded = verifyToken(tokenWithoutBearer); // Verify the token to get user info
       console.log('Decoded token:', decoded); // Log the decoded token for debugging
@@ -392,15 +404,18 @@ app.post('/api/webhook', async(req, res) => {
       console.error('Invalid or expired token:', error);
       return res.status(401).json({ message: 'Invalid or expired token' });
     }
-      const senderName = decoded.name; // Extract the sender's name from the decoded token
-         // Send a confirmation email
+
+    const senderName = decoded.name; // Extract the sender's name from the decoded token
+
+    // Send a confirmation email
     try {
       await sendEmailAndNotifyWebhook(senderName, recipientEmail, recipientName);
       console.log(`Email sent to ${recipientEmail}`);
     } catch (error) {
       console.error('Error sending email:', error);
     }
-   }
+  }
+
   res.status(200).json({ message: "Order received" });
 });
 
