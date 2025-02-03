@@ -20,6 +20,7 @@ const emailTracking = {}; // { email: { delivered: count, clicked: count } }
 // Allow requests from your frontend origin
 app.use(cors({  allowedHeaders: ['Content-Type', 'authorization'], }));
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 app.post('/signup', async (req, res) => {
   const { name, email, password, confirmPassword  } = req.body;
   console.log(req.body); // Log the request body to debug
