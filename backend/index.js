@@ -372,7 +372,7 @@ app.get('/unsubscribe', async (req, res) => {
   }
 });
 
-app.post('/api/webhook', (req, res) => {
+app.post('/api/webhook', async(req, res) => {
   console.log("Headers:", req.headers);
   console.log("Body:", req.body);
   const eventData = req.body;
