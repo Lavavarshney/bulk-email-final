@@ -13,7 +13,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const app = express();
 const PORT = process.env.PORT || 3000;
-const axios = require('axios');
+
 require('dotenv').config();
 
 const apiKey = process.env.BREVO_API_KEY;
