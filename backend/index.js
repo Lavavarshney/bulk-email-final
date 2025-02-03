@@ -13,6 +13,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const app = express();
 const PORT = process.env.PORT || 3000;
+const axios = require('axios');
 require('dotenv').config();
 
 const apiKey = process.env.BREVO_API_KEY;
@@ -372,56 +373,6 @@ app.get('/unsubscribe', async (req, res) => {
   }
 });
 
-app.post('/api/webhook', async (req, res) => {
-  console.log("Headers:", req.headers);
- // console.log("Body:", req.body);
-
-  const eventData = req.body;
-
-  // Extract relevant data from the webhook payload
-  const { meta , data } = eventData; // Extract event name and data
-  console.log(meta);
-  console.log(data);
-  
-  const orderId = data.id; // Extract the order ID
-
-  if (meta.event_name === 'order_created') { // Check for the specific event
-    // Extract buyer information from the payload
-    const recipientEmail = data.attributes.user_email; // Extract the buyer's email
-    const recipientName = data.attributes.user_name; // Extract the buyer's name
-     console.log( recipientEmail);
-    console.log(recipientName);
-    // Extract the token from the Authorization header
-    const token = req.headers['authorization'];
-    if (!token) {
-      return res.status(400).json({ message: 'No token provided' });
-    }
-
-    // Remove "Bearer " prefix if present
-    const tokenWithoutBearer = token.startsWith('Bearer ') ? token.split(' ')[1] : token;
-
-    let decoded;
-    try {
-      decoded = verifyToken(tokenWithoutBearer); // Verify the token to get user info
-      console.log('Decoded token:', decoded); // Log the decoded token for debugging
-    } catch (error) {
-      console.error('Invalid or expired token:', error);
-      return res.status(401).json({ message: 'Invalid or expired token' });
-    }
-
-    const senderName = decoded.name; // Extract the sender's name from the decoded token
-
-    // Send a confirmation email
-    try {
-      await sendEmailAndNotifyWebhook(senderName, recipientEmail, recipientName);
-      console.log(`Email sent to ${recipientEmail}`);
-    } catch (error) {
-      console.error('Error sending email:', error);
-    }
-  }
-
-  res.status(200).json({ message: "Order received" });
-});
 
 
 // Helper function to send email
@@ -713,6 +664,31 @@ const tokenWithoutBearer = token.startsWith('Bearer ') ? token.split(' ')[1] : t
       res.status(500).json({ message: 'Error parsing CSV file' });
     });
 });
+
+  app.post('/api/webhook', async (req, res) => {
+  console.log("Headers:", req.headers);
+  console.log("Body:", req.body);
+  
+  // Assuming the webhook notification includes an email list or trigger info
+  const { emailList, scheduleEmail, scheduleTime, emailContent } = req.body;
+
+  // If webhook contains the required info, trigger email sending
+  if (emailList && emailList.length > 0) {
+    // Call the /send-manual-emails endpoint internally after webhook processing
+    await axios.post('/send-manual-emails', {
+      emailList,
+      scheduleEmail,
+      scheduleTime,
+      emailContent,
+    });
+
+    res.status(200).json({ message: "Webhook received, emails will be sent." });
+  } else {
+    res.status(400).json({ message: "Invalid webhook data." });
+  }
+});
+
+
 
 // Start the server
 app.listen(PORT, () => {
