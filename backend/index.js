@@ -377,7 +377,7 @@ app.post('/api/webhook', async(req, res) => {
   console.log("Body:", req.body);
   const eventData = req.body;
   const { event_name, user_name, user_email} = eventData;
-   if (event === 'order_created') {
+   if (event_name === 'order_created') {
         const token = req.headers['authorization'];
     if (!token) {
       return res.status(400).json({ message: 'No token provided' });
