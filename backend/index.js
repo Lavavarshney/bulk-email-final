@@ -427,7 +427,7 @@ app.post('/send-manual-emails', async (req, res) => {
   }
 // Remove "Bearer " prefix if present
 const tokenWithoutBearer = token.startsWith('Bearer ') ? token.split(' ')[1] : token;
-  console.log( tokenWithoutBearer);
+ // console.log(tokenWithoutBearer);
   let decoded;
   try {
     decoded = verifyToken(tokenWithoutBearer); 
