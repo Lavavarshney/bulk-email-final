@@ -379,10 +379,10 @@ app.post('/api/webhook', async (req, res) => {
   const eventData = req.body;
 
   // Extract relevant data from the webhook payload
-  const { event_name, data } = eventData; // Extract event name and data
+  const { meta , data } = eventData; // Extract event name and data
   const orderId = data.id; // Extract the order ID
 
-  if (event_name === 'order_created') { // Check for the specific event
+  if (meta.event_name === 'order_created') { // Check for the specific event
     // Extract buyer information from the payload
     const recipientEmail = data.attributes.user_email; // Extract the buyer's email
     const recipientName = data.attributes.user_name; // Extract the buyer's name
