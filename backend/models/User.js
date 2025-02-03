@@ -13,6 +13,8 @@ const userSchema = new mongoose.Schema({
   password: { type: String },
   subscribed: { type: Boolean, default: true }, // Add this field
   emailsSent: { type: Number, default: 0 }, // Track the number of emails sent
+  planStatus: {type: String, enum:["free","paid"], default:"free"},
+  emailLimit: {type: Number, default: 10}
 });
 
 const User = mongoose.model('User', userSchema);
