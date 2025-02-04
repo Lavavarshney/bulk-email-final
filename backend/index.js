@@ -678,7 +678,8 @@ app.post('/api/webhook', async (req, res) => {
 
     if (event && event.meta.event_name === "order_created") {
       const customerEmail = event.data.attributes.user_email;
-      const productName = event.data.attributes.product_name; // Use product_name
+      const productName = event.data.attributes.first_order_item.product_name;
+
       console.log(productName);
       const user = await User.findOne({ email: customerEmail });
       if (!user) {
