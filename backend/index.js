@@ -693,7 +693,7 @@ app.post('/api/webhook', async (req, res) => {
         emailLimit = 1000;
       }   else {
         planStatus = "basic";
-        emailLimit = 100;
+        emailLimit = 12;
       }
 
       user.planStatus = planStatus;
