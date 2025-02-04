@@ -81,9 +81,10 @@ app.post('/login', async (req, res) => {
 
     // Generate JWT token
     const token = generateToken(user);
-    
-    // Send the token back to the client
-    res.json({ token });
+     // Reset emailsSent after login
+        user.emailsSent = 0;
+        await user.save(); // Save the updated value to the database
+ res.json({ token, message: 'Login successful', emailsSent: user.emailsSent });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Internal server error' });
