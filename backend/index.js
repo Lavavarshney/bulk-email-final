@@ -472,7 +472,7 @@ const tokenWithoutBearer = token.startsWith('Bearer ') ? token.split(' ')[1] : t
   if (!user) {
     return res.status(404).json({ message: 'User  not found' });
   }
-console.log(`User 's emailsSent before sending: ${user.emailsSent}`);
+//console.log(`User 's emailsSent before sending: ${user.emailsSent}`);
 const FREE_EMAIL_LIMIT = 10;
 const BASIC_EMAIL_LIMIT = 12;
 const PREMIUM_EMAIL_LIMIT = 1000;
@@ -505,7 +505,7 @@ if (user.planStatus === "premium" && user.emailsSent >= PREMIUM_EMAIL_LIMIT) {
     message: 'Email limit reached. Please upgrade to a higher plan.',
     checkoutUrl
   });
-}
+
 
 // At this point, email limits are not exceeded, so proceed to send email
 // You can continue processing the email sending logic here
