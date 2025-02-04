@@ -688,14 +688,12 @@ app.post('/api/webhook', async (req, res) => {
 
       // Determine plan based on product_name
       let emailLimit, planStatus;
-      if (productName.includes("Email sending plan")) {
-        planStatus = "basic";
-        emailLimit = 100;
-      } else if (productName.includes("Email sending plan premium")) {
+     if (productName.includes("premium")) {
         planStatus = "premium";
         emailLimit = 1000;
-      } else {
-        return res.status(400).json({ message: "Invalid plan type" });
+      }   else {
+        planStatus = "basic";
+        emailLimit = 100;
       }
 
       user.planStatus = planStatus;
