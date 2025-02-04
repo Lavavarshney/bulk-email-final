@@ -672,26 +672,38 @@ const tokenWithoutBearer = token.startsWith('Bearer ') ? token.split(' ')[1] : t
     });
 });
 
-  app.post('/api/webhook', async (req, res) => {
- try {
+app.post('/api/webhook', async (req, res) => {
+  try {
     const event = req.body;
 
     if (event && event.meta.event_name === "order_created") {
       const customerEmail = event.data.attributes.user_email;
+      const productName = event.data.attributes.product_name.toLowerCase(); // Use product_name
 
       const user = await User.findOne({ email: customerEmail });
       if (!user) {
         return res.status(404).json({ message: "User not found." });
       }
 
-      // Upgrade the user's plan to "paid" and increase their email limit
-      user.planStatus = "paid";
-      user.emailLimit = 1000; // Set new limit for paid users
-      user.emailsSent=0;
+      // Determine plan based on product_name
+      let emailLimit, planStatus;
+      if (productName.includes("Email sending plan")) {
+        planStatus = "basic";
+        emailLimit = 100;
+      } else if (productName.includes("Email sending plan premium")) {
+        planStatus = "premium";
+        emailLimit = 1000;
+      } else {
+        return res.status(400).json({ message: "Invalid plan type" });
+      }
+
+      user.planStatus = planStatus;
+      user.emailLimit = emailLimit;
+      user.emailsSent = 0;
       await user.save();
 
-      console.log(`User ${user.email} upgraded to paid plan. New limit: ${user.emailLimit}`);
-      return res.status(200).json({ message: "User upgraded successfully" });
+      console.log(`User ${user.email} upgraded to ${user.planStatus} plan. New limit: ${user.emailLimit}`);
+      return res.status(200).json({ message: `User upgraded to ${user.planStatus} successfully` });
     }
 
     res.status(400).json({ message: "Invalid event type" });
@@ -699,6 +711,8 @@ const tokenWithoutBearer = token.startsWith('Bearer ') ? token.split(' ')[1] : t
     console.error("Error processing Lemon Squeezy webhook:", error);
     res.status(500).json({ message: "Internal Server Error" });
   }
+});
+
 });
 
 
