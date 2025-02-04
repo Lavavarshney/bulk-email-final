@@ -473,37 +473,43 @@ const tokenWithoutBearer = token.startsWith('Bearer ') ? token.split(' ')[1] : t
     return res.status(404).json({ message: 'User  not found' });
   }
 console.log(`User 's emailsSent before sending: ${user.emailsSent}`);
- const FREE_EMAIL_LIMIT = 10;
+const FREE_EMAIL_LIMIT = 10;
 const BASIC_EMAIL_LIMIT = 12;
-  // Check if the user has exceeded their plan's email limit
-  if (user.emailsSent >= FREE_EMAIL_LIMIT) {
-    // Redirect only basic plan users to upgrade
-    if (user.planStatus === "free") {
-      const checkoutUrl = `https://myappstore.lemonsqueezy.com/buy/45f80958-7809-49ef-8a3f-5aa75851adc3`; // Replace with actual checkout URL
-      return res.status(402).json({
-        message: 'Email limit reached. Please upgrade to Premium.',
-        checkoutUrl
-      });
-    } 
-   if (user.emailsSent >= BASIC_EMAIL_LIMIT) {
-  if (user.planStatus === "basic") {
-    // Basic users must upgrade to Premium after 12 emails
-    const checkoutUrl = `https://myappstore.lemonsqueezy.com/buy/2f666a6a-1ebb-4bdb-bfae-2e942ba9d12a`; // Basic -> Premium
-    return res.status(402).json({
-      message: 'You have reached the Basic plan limit (12 emails). Please upgrade to the Premium plan.',
-      checkoutUrl
-    });
-  }
+const PREMIUM_EMAIL_LIMIT = 1000;
+
+console.log(`User's emailsSent before sending: ${user.emailsSent}`);
+
+// Check if the user has exceeded their plan's email limit
+if (user.planStatus === "free" && user.emailsSent >= FREE_EMAIL_LIMIT) {
+  // Redirect free plan users to upgrade
+  const checkoutUrl = `https://myappstore.lemonsqueezy.com/buy/45f80958-7809-49ef-8a3f-5aa75851adc3`; // Free -> Premium URL
+  return res.status(402).json({
+    message: 'Email limit reached. Please upgrade to Premium.',
+    checkoutUrl
+  });
 }
-    else if  (user.planStatus === "premium"){
-        const checkoutUrl = `https://myappstore.lemonsqueezy.com/buy/2f666a6a-1ebb-4bdb-bfae-2e942ba9d12a`; // Replace with actual checkout URL
-      return res.status(402).json({
-        message: 'Email limit reached. Please upgrade to Premium.',
-        checkoutUrl
-      });
-    } else {
-      return res.status(403).json({ message: 'Email limit exceeded. Contact support.' });
-    }
+
+if (user.planStatus === "basic" && user.emailsSent >= BASIC_EMAIL_LIMIT) {
+  // Redirect basic plan users to upgrade to Premium
+  const checkoutUrl = `https://myappstore.lemonsqueezy.com/buy/2f666a6a-1ebb-4bdb-bfae-2e942ba9d12a`; // Basic -> Premium URL
+  return res.status(402).json({
+    message: 'You have reached the Basic plan limit (12 emails). Please upgrade to Premium.',
+    checkoutUrl
+  });
+}
+
+if (user.planStatus === "premium" && user.emailsSent >= PREMIUM_EMAIL_LIMIT) {
+  // Premium users can be blocked if they exceed their limit (optional)
+  const checkoutUrl = `https://myappstore.lemonsqueezy.com/buy/2f666a6a-1ebb-4bdb-bfae-2e942ba9d12a`; // Premium -> Reached Limit URL
+  return res.status(402).json({
+    message: 'Email limit reached. Please upgrade to a higher plan.',
+    checkoutUrl
+  });
+}
+
+// At this point, email limits are not exceeded, so proceed to send email
+// You can continue processing the email sending logic here
+
   }
 
   try {
