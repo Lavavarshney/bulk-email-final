@@ -708,17 +708,35 @@ app.post('/api/webhook', async (req, res) => {
 
       // Determine plan based on product_name
       let emailLimit, planStatus;
-     if (productName.includes("premium")) {
+
+      if (productName.includes("premium")) {
         planStatus = "premium";
-        emailLimit = 1000;
-      }   else {
+        emailLimit = 1000;  // Premium email limit
+      } else if (productName.includes("basic")) {
         planStatus = "basic";
-        emailLimit = 12;
+        emailLimit = 12;    // Basic email limit
+      } else {
+        planStatus = "free"; 
+        emailLimit = 10;    // Free email limit
       }
 
+      // Only update plan and email limit
       user.planStatus = planStatus;
       user.emailLimit = emailLimit;
-      user.emailsSent = 0;
+
+      // Logic for Free to Basic transition
+      if (user.planStatus === "basic" && user.emailsSent > emailLimit) {
+        user.emailsSent = emailLimit;  // Ensure email count doesn't exceed basic limit (12)
+      }
+
+      // Logic for Basic to Premium transition
+      if (user.planStatus === "premium") {
+        // No reset of emailsSent unless the user was on free plan and exceeded limits
+        if (user.emailsSent > emailLimit) {
+          user.emailsSent = emailLimit;  // Ensure email count doesn't exceed basic limit (12) for basic to premium transition
+        }
+      }
+
       await user.save();
 
       console.log(`User ${user.email} upgraded to ${user.planStatus} plan. New limit: ${user.emailLimit}`);
@@ -731,7 +749,6 @@ app.post('/api/webhook', async (req, res) => {
     res.status(500).json({ message: "Internal Server Error" });
   }
 });
-
 
 
 
