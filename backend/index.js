@@ -712,13 +712,10 @@ app.post('/api/webhook', async (req, res) => {
       if (productName.includes("premium")) {
         planStatus = "premium";
         emailLimit = 1000;  // Premium email limit
-      } else if (productName.includes("basic")) {
+      } else {
         planStatus = "basic";
         emailLimit = 12;    // Basic email limit
-      } else {
-        planStatus = "free"; 
-        emailLimit = 10;    // Free email limit
-      }
+      } 
 
       // Only update plan and email limit
       user.planStatus = planStatus;
