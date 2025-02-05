@@ -659,7 +659,7 @@ const tokenWithoutBearer = token.startsWith('Bearer ') ? token.split(' ')[1] : t
           if (cleanedEmail !== "lavanya.varshney2104@gmail.com") {
           const existingUser = await User.findOne({ email: cleanedEmail });
           if (existingUser) {
-            console.log(Duplicate email found: ${cleanedEmail});
+            console.log(`Duplicate email found: ${cleanedEmail}`);
             continue; // Skip if the email already exists
           }
         
@@ -671,15 +671,15 @@ const tokenWithoutBearer = token.startsWith('Bearer ') ? token.split(' ')[1] : t
           const delay = parseScheduleTime(req.body.scheduleTime);
           if (delay !== null) {
             setTimeout(async () => {
-              await sendEmailAndNotifyWebhook(decoded.name, cleanedEmail,cleanedName,attachments);
-              console.log(Scheduled email sent to ${cleanedEmail} after ${req.body.scheduleTime});
+              await sendEmailAndNotifyWebhook(decoded.name, cleanedEmail,cleanedName);
+              console.log(`Scheduled email sent to ${cleanedEmail} after ${req.body.scheduleTime}`);
             }, delay);
           } else {
-            console.log(Invalid schedule time for ${cleanedEmail}. Email not scheduled.);
+            console.log(`Invalid schedule time for ${cleanedEmail}. Email not scheduled.`);
           }
         } else {
           // Send email immediately if no schedule is set
-          await sendEmailAndNotifyWebhook(decoded.name, cleanedEmail,cleanedName,attachments);
+          await sendEmailAndNotifyWebhook(decoded.name, cleanedEmail,cleanedName);
         }
         
         } catch (error) {
