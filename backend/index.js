@@ -481,6 +481,12 @@ app.post('/send-manual-emails', async (req, res) => {
     sessionEmailCount[decoded.email] = 0; // Initialize session count for the user
   }
 
+    // Check if the user has exceeded their session email limit
+    if (sessionEmailCount[decoded.email] >= (user.planStatus === "free" ? FREE_EMAIL_LIMIT : user.planStatus === "basic" ? BASIC_EMAIL_LIMIT : PREMIUM_EMAIL_LIMIT)) {
+      return res.status(402).json({
+        message: 'Email limit reached for your current plan. Please upgrade.',
+      });
+    }
   try {
     // Process each valid email
     const emailPromises = validEmails.map(async ({ name, email }) => {
@@ -528,12 +534,6 @@ app.post('/send-manual-emails', async (req, res) => {
       }
     });
 
-    // Check if the user has exceeded their session email limit
-    if (sessionEmailCount[decoded.email] >= (user.planStatus === "free" ? FREE_EMAIL_LIMIT : user.planStatus === "basic" ? BASIC_EMAIL_LIMIT : PREMIUM_EMAIL_LIMIT)) {
-      return res.status(402).json({
-        message: 'Email limit reached for your current plan. Please upgrade.',
-      });
-    }
 
     // Wait for all email sending tasks to complete
     await Promise.all(emailPromises);
