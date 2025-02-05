@@ -760,7 +760,7 @@ app.post('/api/webhook', async (req, res) => {
       await user.save();
 
       console.log(`User ${user.email} upgraded to ${user.planStatus} plan. New limit: ${user.emailLimit}`);
-      return res.status(200).json({ `message: User upgraded to ${user.planStatus} successfully` });
+      return res.status(200).json({ message: `User upgraded to ${user.planStatus} successfully` });
     }
 
     res.status(400).json({ message: "Invalid event type" });
