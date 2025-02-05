@@ -469,24 +469,21 @@ app.post('/send-manual-emails', async (req, res) => {
   if (!user) {
     return res.status(404).json({ message: 'User  not found' });
   }
-
-  const FREE_EMAIL_LIMIT = 10;
+ const FREE_EMAIL_LIMIT = 10;
   const BASIC_EMAIL_LIMIT = 12;
   const PREMIUM_EMAIL_LIMIT = 1000;
-
-  //console.log(`User 's emailsSent before sending: ${user.emailsSent}`);
 
   // Initialize session email count if not already done
   if (!sessionEmailCount[decoded.email]) {
     sessionEmailCount[decoded.email] = 0; // Initialize session count for the user
   }
 
-    // Check if the user has exceeded their session email limit
-    if (sessionEmailCount[decoded.email] >= (user.planStatus === "free" ? FREE_EMAIL_LIMIT : user.planStatus === "basic" ? BASIC_EMAIL_LIMIT : PREMIUM_EMAIL_LIMIT)) {
-      return res.status(402).json({
-        message: 'Email limit reached for your current plan. Please upgrade.',
-      });
-    }
+  // Check if the user has exceeded their session email limit
+  if (sessionEmailCount[decoded.email] >= (user.planStatus === "free" ? FREE_EMAIL_LIMIT : user.planStatus === "basic" ? BASIC_EMAIL_LIMIT : PREMIUM_EMAIL_LIMIT)) {
+    return res.status(402).json({
+      message: 'Email limit reached for your current plan. Please upgrade.',
+    });
+  }
   try {
     // Process each valid email
     const emailPromises = validEmails.map(async ({ name, email }) => {
@@ -686,58 +683,59 @@ app.post('/api/webhook', async (req, res) => {
   try {
     const event = req.body;
 
+    // Check if the event is an order creation event
     if (event && event.meta.event_name === "order_created") {
       const customerEmail = event.data.attributes.user_email;
       const productName = event.data.attributes.first_order_item.product_name;
 
-      console.log(productName);
+      console.log(`Product purchased: ${productName}`);
       const user = await User.findOne({ email: customerEmail });
       if (!user) {
-        return res.status(404).json({ message: "User not found." });
+        return res.status(404).json({ message: "User  not found." });
       }
 
       // Determine plan based on product_name
-      let emailLimit, plan;
+      let emailLimit, planStatus;
 
       if (productName.includes("premium")) {
-        plan = "premium";
+        planStatus = "premium";
         emailLimit = 1000;  // Premium email limit
       } else {
-        plan= "basic";
+        planStatus = "basic";
         emailLimit = 12;    // Basic email limit
       } 
 
-      // Only update plan and email limit
-      user.planStatus = plan;
+      // Update user's plan and email limit
+      user.planStatus = planStatus;
       user.emailLimit = emailLimit;
 
-      // Check session email count
+      // Initialize session email count if not already done
       if (!sessionEmailCount[customerEmail]) {
         sessionEmailCount[customerEmail] = 0; // Initialize session count for the user
       }
 
-   // Logic for Free to Basic transition
-      if (plan === "basic" && sessionEmailCount[customerEmail] > emailLimit) {
+      // Logic for Free to Basic transition
+      if (planStatus === "basic" && sessionEmailCount[customerEmail] > emailLimit) {
         sessionEmailCount[customerEmail] = emailLimit;  // Cap session count to the new limit
       }
 
       // Logic for Basic to Premium transition
-      if (plan === "premium") {
+      if (planStatus === "premium") {
         if (sessionEmailCount[customerEmail] > emailLimit) {
           sessionEmailCount[customerEmail] = emailLimit;  // Cap session count to the new limit
         }
       }
 
-
       await user.save();
 
-      console.log(`User ${user.email} upgraded to ${user.planStatus} plan. New limit: ${user.emailLimit}`);
-      return res.status(200).json({ message: `User upgraded to ${user.planStatus} successfully` });
+      console.log(`User  ${user.email} upgraded to ${user.planStatus} plan. New limit: ${user.emailLimit}`);
+      return res.status(200).json({ message: `User  upgraded to ${user.planStatus} successfully` });
     }
 
+    // If the event is not recognized
     res.status(400).json({ message: "Invalid event type" });
   } catch (error) {
-    console.error("Error processing Lemon Squeezy webhook:", error);
+    console.error("Error processing webhook:", error);
     res.status(500).json({ message: "Internal Server Error" });
   }
 });
