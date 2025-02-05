@@ -68,7 +68,7 @@ app.post('/login', async (req, res) => {
   console.log("User from DB:", user); // Debug user data
   console.log("Password from Request:", password);
   console.log("Stored Hashed Password:", user.password);
-
+]
   // Ensure user has a password before comparing
   if (!user.password) {
     return res.status(500).json({ message: 'No password stored for this user' });
@@ -81,7 +81,7 @@ app.post('/login', async (req, res) => {
      // Reset session email count for the user
     // Generate JWT token
     const token = generateToken(user);
-     
+       req.session.emailsSentCounted = false; // Initialize to false
  res.json({ token, message: 'Login successful' });
   } catch (error) {
     console.error(error);
@@ -307,32 +307,38 @@ app.post('/send-email-content', async (req, res) => {
   }
 });
 app.post('/api/track-delivery', async (req, res) => {
-  const { email } = req.body; // Assuming you send email and messageId in the request body
+  const { email } = req.body;
+
+  // Check if the email has already been counted in this session
+  if (req.session.emailsSentCounted) {
+    return res.status(200).json({ 
+      message: 'Delivery already counted for this session', 
+      emailsSent: req.session.totalDelivered 
+    });
+  }
 
   // Initialize totalDelivered variable
-  let totalDelivered=0;
+  let totalDelivered = 0;
 
-  // Log the delivery event
   if (email) {
-    // Find the user by email
     const user = await User.findOne({ email });
     if (!user) {
       return res.status(404).json({ message: 'User  not found' });
     }
 
-    // Increment the delivered count for the specific email
-    user.emailsSent += 1; // Increment emailsSent in the database
-    await user.save(); // Save the updated user instance
-    totalDelivered = user.emailsSent; // Assign to totalDelivered
+    user.emailsSent += 1; 
+    await user.save(); 
+    totalDelivered = user.emailsSent; 
+    req.session.emailsSentCounted = true; // Mark as counted
+    req.session.totalDelivered = totalDelivered; // Store the count in session
     console.log(`Email delivered: ${email}, Total Delivered: ${totalDelivered}`);
   } else {
     return res.status(400).json({ message: 'Email is required' });
   }
 
-  // Respond with a success message and the updated emailsSent count
   return res.status(200).json({ 
-    message: 'Delivery tracked successfully',
-    emailsSent: totalDelivered // Use camelCase for property names
+    message: 'Delivery tracked successfully', 
+    emailsSent: totalDelivered 
   });
 });
 app.get('/open-rate', async (req, res) => {
