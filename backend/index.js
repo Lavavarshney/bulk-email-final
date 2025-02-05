@@ -68,7 +68,7 @@ app.post('/login', async (req, res) => {
   console.log("User from DB:", user); // Debug user data
   console.log("Password from Request:", password);
   console.log("Stored Hashed Password:", user.password);
-]
+
   // Ensure user has a password before comparing
   if (!user.password) {
     return res.status(500).json({ message: 'No password stored for this user' });
