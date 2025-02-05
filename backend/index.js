@@ -331,7 +331,7 @@ app.post('/api/track-delivery', async (req, res) => {
 
   // Respond with a success message and the updated emailsSent count
   return res.status(200).json({ 
-    message: 'Delivery tracked successfully', 
+    message: 'Delivery tracked successfully'
     //emailsSent: totalDelivered // Use camelCase for property names
   });
 });
