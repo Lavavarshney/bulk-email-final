@@ -52,7 +52,7 @@ app.post('/signup', async (req, res) => {
   }
 });
 
-
+let sessionEmailCount = {}; // Object to track emails sent per user session
 app.post('/login', async (req, res) => {
   const { email, password } = req.body;
 
@@ -78,6 +78,8 @@ app.post('/login', async (req, res) => {
     if (!isPasswordValid) {
       return res.status(400).json({ message: 'Invalid password' });
     }
+     // Reset session email count for the user
+    sessionEmailCount[user.email] = 0; // Initialize session count
 
     // Generate JWT token
     const token = generateToken(user);
@@ -478,39 +480,9 @@ const PREMIUM_EMAIL_LIMIT = 1000;
 
 console.log(`User's emailsSent before sending: ${user.emailsSent}`);
 
-// Check if the user has exceeded their plan's email limit
-if (user.planStatus === "free" && user.emailsSent >= FREE_EMAIL_LIMIT) {
-  // Redirect free plan users to upgrade
-  const checkoutUrl = `https://myappstore.lemonsqueezy.com/buy/45f80958-7809-49ef-8a3f-5aa75851adc3`; // Free -> Premium URL
-  return res.status(402).json({
-    message: 'Email limit reached. Please upgrade to Premium.',
-    checkoutUrl
-  });
-}
-
-if (user.planStatus === "basic" && user.emailsSent >= BASIC_EMAIL_LIMIT) {
-  // Redirect basic plan users to upgrade to Premium
-  const checkoutUrl = `https://myappstore.lemonsqueezy.com/buy/2f666a6a-1ebb-4bdb-bfae-2e942ba9d12a`; // Basic -> Premium URL
-  return res.status(402).json({
-    message: 'You have reached the Basic plan limit (12 emails). Please upgrade to Premium.',
-    checkoutUrl
-  });
-}
-
-if (user.planStatus === "premium" && user.emailsSent >= PREMIUM_EMAIL_LIMIT) {
-  // Premium users can be blocked if they exceed their limit (optional)
-  const checkoutUrl = `https://myappstore.lemonsqueezy.com/buy/2f666a6a-1ebb-4bdb-bfae-2e942ba9d12a`; // Premium -> Reached Limit URL
-  return res.status(402).json({
-    message: 'Email limit reached. Please upgrade to a higher plan.',
-    checkoutUrl
-  });
-
 
 // At this point, email limits are not exceeded, so proceed to send email
 // You can continue processing the email sending logic here
-
-  }
-
   try {
     // Process each valid email
     const emailPromises = validEmails.map(async ({ name, email }) => {
@@ -559,6 +531,26 @@ if (user.planStatus === "premium" && user.emailsSent >= PREMIUM_EMAIL_LIMIT) {
         console.log("emailSent count",user.emailsSent);
       }
     });
+        // Check if the user has exceeded their session email limit
+    if (sessionEmailCount[userEmail] >= (user.planStatus === "free" ? FREE_EMAIL_LIMIT : user.planStatus === "basic" ? BASIC_EMAIL_LIMIT : PREMIUM_EMAIL_LIMIT)) {
+      return res.status(402).json({
+        message: 'Email limit reached for your current plan. Please upgrade.',
+      });
+    }
+
+    // Send email immediately
+    await sendEmailAndNotifyWebhook(decoded.name, email, name);
+    sessionEmailCount[email] += 1; // Increment session email count
+
+    // Check for plan upgrades based on session count
+    if (sessionEmailCount[email] === FREE_EMAIL_LIMIT && user.planStatus === "free") {
+      user.planStatus = "basic"; // Upgrade to basic
+      await user.save();
+    } else if (sessionEmailCount[email] === BASIC_EMAIL_LIMIT && user.planStatus === "basic") {
+      user.planStatus = "premium"; // Upgrade to premium
+      await user.save();
+    }
+  });
 
     // Wait for all email sending tasks to complete
     await Promise.all(emailPromises);
