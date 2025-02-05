@@ -307,10 +307,10 @@ app.post('/send-email-content', async (req, res) => {
   }
 });
 app.post('/api/track-delivery', async (req, res) => {
-  const { email, messageId } = req.body; // Assuming you send email and messageId in the request body
+  const { email } = req.body; // Assuming you send email and messageId in the request body
 
   // Log the delivery event
-  if (email && messageId) {
+  if (email) {
     // Find the user by email
     const user = await User.findOne({ email });
     if (!user) {
@@ -321,7 +321,7 @@ app.post('/api/track-delivery', async (req, res) => {
     user.emailsSent += 1; // Increment emailsSent in the database
     await user.save(); // Save the updated user instance
 
-    console.log(`Email delivered: ${email}, Message ID: ${messageId}, Total Delivered: ${user.emailsSent}`);
+    console.log(`Email delivered: ${email}, Total Delivered: ${user.emailsSent}`);
   }
 
   // Respond with a success message
