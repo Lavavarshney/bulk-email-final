@@ -320,13 +320,13 @@ app.post('/api/track-delivery', async (req, res) => {
     // Increment the delivered count for the specific email
     user.emailsSent += 1; // Increment emailsSent in the database
     await user.save(); // Save the updated user instance
-
-    console.log(`Email delivered: ${email}, Total Delivered: ${user.emailsSent}`);
+ const totalDelivered = user.emailsSent;
+    console.log(`Email delivered: ${email}, Total Delivered: ${totalDelivered}`);
   }
 
 res.status(200).json({ 
   message: 'Delivery tracked successfully', 
-  totalDelivered: user.emailsSent // Use camelCase for property names
+  emailsSent: totalDelivered// Use camelCase for property names
 });
 });
 app.get('/open-rate', async (req, res) => {
