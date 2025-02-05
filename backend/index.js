@@ -52,7 +52,7 @@ app.post('/signup', async (req, res) => {
   }
 });
 
-let sessionEmailCount = {}; // Object to track emails sent per user session
+
 app.post('/login', async (req, res) => {
   const { email, password } = req.body;
 
@@ -79,8 +79,6 @@ app.post('/login', async (req, res) => {
       return res.status(400).json({ message: 'Invalid password' });
     }
      // Reset session email count for the user
-    sessionEmailCount[user.email] = 0; // Initialize session count
-
     // Generate JWT token
     const token = generateToken(user);
      
@@ -184,7 +182,7 @@ app.post('/add-verified-sender', async (req, res) => {
     res.status(500).json({ message: 'Failed to add sender' });
   }
 });
-const processedEvents = new Set();
+/*const processedEvents = new Set();
 app.post('/webhook', async(req, res) => {
   const eventData = req.body;
   console.log(eventData);
@@ -199,19 +197,19 @@ app.post('/webhook', async(req, res) => {
   // Handle email events
   if (event === 'delivered') {
     emailTracking[sender_email].delivered += 1;
-    console.log(`Email ${email} delivered.`);
+    console.log(Email ${email} delivered.);
   } 
   if (event === 'click') {
     emailTracking[sender_email].clicked += 1;
-    console.log(`Email ${email} clicked.`);
+    console.log(Email ${email} clicked.);
   } 
 if (event === 'unique_opened') {
       emailTracking[sender_email].opened += 1;
-    console.log(`Email ${email} opened.`);
+    console.log(Email ${email} opened.);
   }
   
   res.status(200).send('Webhook received');
-});
+});*/
 
 
 // Example of setting dynamic email content with a placeholder
@@ -326,7 +324,7 @@ console.log("Email Tracking Data: ", emailTracking);
   .filter(([senderEmail]) => senderEmail === userEmail) // Only include the current user's data    
   .map(([senderEmail, { delivered, opened }]) => {
     const openRate = delivered > 0 ? ((opened / delivered) * 100).toFixed(2) : "0.00";
-    return { email: senderEmail, delivered, opened, openRate: `${openRate}%` };
+    return { email: senderEmail, delivered, opened, openRate: ${openRate}% };
   })
   .filter(rate => rate.email !== 'Unknown Email');
 
@@ -341,7 +339,7 @@ app.get('/click-rate', async (req, res) => {
   const rates = Object.entries(emailTracking).map(([email, { delivered, clicked }]) => {
     const effectiveDelivered = delivered || totalUsers; // Fallback to total user count if delivered is 0
     const clickRate = effectiveDelivered > 0 ? ((clicked / effectiveDelivered) * 100).toFixed(2) : 0;
-    return { email, delivered: effectiveDelivered, clicked, clickRate: `${clickRate}%` };
+    return { email, delivered: effectiveDelivered, clicked, clickRate: ${clickRate}% };
   });
 
   res.status(200).json(rates);
@@ -422,23 +420,33 @@ const sendEmailAndNotifyWebhook = async ( senderName,recipientEmail,recipientNam
 };
 app.post('/send-manual-emails', async (req, res) => {
   const token = req.headers['authorization'];  // Get the token from the headers
+  console.log(token);
   if (!token) {
     return res.status(400).json({ message: 'No token provided' });
   }
-
-  const tokenWithoutBearer = token.startsWith('Bearer ') ? token.split(' ')[1] : token;
+// Remove "Bearer " prefix if present
+const tokenWithoutBearer = token.startsWith('Bearer ') ? token.split(' ')[1] : token;
+ // console.log(tokenWithoutBearer);
   let decoded;
   try {
     decoded = verifyToken(tokenWithoutBearer); 
+    console.log(decoded);// Verify the token to get user info
   } catch (error) {
     return res.status(401).json({ message: 'Invalid or expired token' });
   }
+  const { emailList, scheduleEmail, scheduleTime} = req.body; // Add scheduling options
+//console.log('Request Body:', req.body);
 
-  const { emailList, scheduleEmail, scheduleTime } = req.body; // Add scheduling options
+  console.log("emailList", emailList);
+ // console.log("subject",subject);
   const emailContent = req.body.emailContent; // Access the email content
+  console.log('Email content received:', emailContent);
 
   dynamicEmailContent = emailContent;
-
+/*  if (!subject) {
+    return res.status(400).json({ message: 'Email subject is required.' });
+  } // Set the email content
+  console.log("subject",subject);*/
   if (!Array.isArray(emailList) || emailList.length === 0) {
     return res.status(400).json({ message: 'Invalid email list provided.' });
   }
@@ -458,27 +466,49 @@ app.post('/send-manual-emails', async (req, res) => {
   if (validEmails.length === 0) {
     return res.status(400).json({ message: 'No valid emails provided.', invalidEmails });
   }
-
-  // Retrieve the user instance from the database
+    // Retrieve the user instance from the database
   const user = await User.findOne({ email: decoded.email });
   if (!user) {
     return res.status(404).json({ message: 'User  not found' });
   }
+//console.log(User 's emailsSent before sending: ${user.emailsSent});
+const FREE_EMAIL_LIMIT = 10;
+const BASIC_EMAIL_LIMIT = 12;
+const PREMIUM_EMAIL_LIMIT = 1000;
 
-  const FREE_EMAIL_LIMIT = 10;
-  const BASIC_EMAIL_LIMIT = 12;
-  const PREMIUM_EMAIL_LIMIT = 1000;
+console.log(User's emailsSent before sending: ${user.emailsSent});
 
-  // Initialize session email count if not already done
-  if (!sessionEmailCount[decoded.email]) {
-    sessionEmailCount[decoded.email] = 0; // Initialize session count for the user
-  }
+// Check if the user has exceeded their plan's email limit
+if (user.planStatus === "free" && user.emailsSent >= FREE_EMAIL_LIMIT) {
+  // Redirect free plan users to upgrade
+  const checkoutUrl = https://myappstore.lemonsqueezy.com/buy/45f80958-7809-49ef-8a3f-5aa75851adc3; // Free -> Premium URL
+  return res.status(402).json({
+    message: 'Email limit reached. Please upgrade to Premium.',
+    checkoutUrl
+  });
+}
 
-  // Check if the user has exceeded their session email limit
-  if (sessionEmailCount[decoded.email] >= (user.planStatus === "free" ? FREE_EMAIL_LIMIT : user.planStatus === "basic" ? BASIC_EMAIL_LIMIT : PREMIUM_EMAIL_LIMIT)) {
-    return res.status(402).json({
-      message: 'Email limit reached for your current plan. Please upgrade.',
-    });
+if (user.planStatus === "basic" && user.emailsSent >= BASIC_EMAIL_LIMIT) {
+  // Redirect basic plan users to upgrade to Premium
+  const checkoutUrl = https://myappstore.lemonsqueezy.com/buy/2f666a6a-1ebb-4bdb-bfae-2e942ba9d12a; // Basic -> Premium URL
+  return res.status(402).json({
+    message: 'You have reached the Basic plan limit (12 emails). Please upgrade to Premium.',
+    checkoutUrl
+  });
+}
+
+if (user.planStatus === "premium" && user.emailsSent >= PREMIUM_EMAIL_LIMIT) {
+  // Premium users can be blocked if they exceed their limit (optional)
+  const checkoutUrl = https://myappstore.lemonsqueezy.com/buy/2f666a6a-1ebb-4bdb-bfae-2e942ba9d12a; // Premium -> Reached Limit URL
+  return res.status(402).json({
+    message: 'Email limit reached. Please upgrade to a higher plan.',
+    checkoutUrl
+  });
+
+
+// At this point, email limits are not exceeded, so proceed to send email
+// You can continue processing the email sending logic here
+
   }
 
   try {
@@ -486,68 +516,52 @@ app.post('/send-manual-emails', async (req, res) => {
     const emailPromises = validEmails.map(async ({ name, email }) => {
       // Check if user already exists in the database
       if (email !== "lavanya.varshney2104@gmail.com") {
-        const existingUser  = await User.findOne({ email: email });
-        if (!existingUser ) {
-          const newUser  = new User({
-            name: name,
-            email: email,
-            subscribed: true, // Assuming the user is subscribed by default
-          });
-          await newUser .save();
-          console.log(`User  added to database: ${name}, ${email}`);
-        } else {
-          throw new Error(`User  already exists: ${name}, ${email}`);
-        }
+      const existingUser = await User.findOne({ email: email });
+         if (!existingUser) {
+        // Add user to the database if they don't already exist
+        const newUser = new User({
+          name: name,
+          email: email,
+          subscribed: true, // Assuming the user is subscribed by default
+        });
+       
+        await newUser.save();
+        console.log(User added to database: ${name}, ${email});
+      }
+      
+      else {
+        // Log to the console instead of alert
+        throw new Error(User already exists: ${name}, ${email});
+  
+       
       }
 
-      // Email sending logic
-      const sendEmail = async () => {
-        await sendEmailAndNotifyWebhook(decoded.name, email, name);
-        sessionEmailCount[decoded.email] += 1; // Increment session email count
-        user.emailsSent += 1; // Increment emailsSent in the database
-        await user.save(); // Save the updated user instance
-        console.log("emailSent count", sessionEmailCount[decoded.email]);
-      };
-
+    }
       if (scheduleEmail && scheduleTime) {
+        // If scheduling is enabled, calculate delay and schedule the email
         const delay = parseScheduleTime(scheduleTime);
         if (delay !== null) {
-          setTimeout(sendEmail, delay);
-          console.log(`Scheduled email to ${email} after ${scheduleTime}`);
+          setTimeout(async () => {
+            await sendEmailAndNotifyWebhook(decoded.name,email,name);
+            user.emailsSent += 1; 
+            await user.save(); // Save the updated user instance
+           console.log("emailSent count",user.emailsSent);
+            console.log(Scheduled email sent to ${email} after ${scheduleTime});
+          }, delay);
         } else {
-          console.log(`Invalid schedule time for ${email}. Email not scheduled.`);
+          console.log(Invalid schedule time for ${email}. Email not scheduled.);
         }
       } else {
-        await sendEmail();
+        // Send email immediately if no scheduling is set
+        await sendEmailAndNotifyWebhook(decoded.name,email,name);
+        user.emailsSent += 1; 
+        await user.save(); // Save the updated user instance
+        console.log("emailSent count",user.emailsSent);
       }
     });
 
     // Wait for all email sending tasks to complete
     await Promise.all(emailPromises);
-    console.log("emailSent",sessionEmailCount[decoded.email]);
-    console.log("free-email-limit",FREE_EMAIL_LIMIT);
-    console.log("planStatus",user.planStatus);
-    // Check for plan upgrades based on session count
-    if (sessionEmailCount[decoded.email] >= FREE_EMAIL_LIMIT && user.planStatus === "free") {
-      user.planStatus = "basic"; // Upgrade to basic
-      console.log("User  upgraded to Basic plan");
-      const checkoutUrl = `https://myappstore.lemonsqueezy.com/buy/45f80958-7809-49ef-8a3f-5aa75851adc3`; // Free -> Premium URL
-      await user.save();
-        return res.status(402).json({
-    message: 'Email limit reached. Please upgrade to Premium.',
-    checkoutUrl
-  });
-
-    } else if (sessionEmailCount[decoded.email] >= BASIC_EMAIL_LIMIT && user.planStatus === "basic") {
-      user.planStatus = "premium"; // Upgrade to premium
-      console.log("User  upgraded to Premium plan");
-      await user.save();
-    const checkoutUrl =`https://myappstore.lemonsqueezy.com/buy/2f666a6a-1ebb-4bdb-bfae-2e942ba9d12a`; // Basic -> Premium URL
-  return res.status(402).json({
-    message: 'You have reached the Basic plan limit (12 emails). Please upgrade to Premium.',
-    checkoutUrl
-  });
-}
 
     res.status(200).json({
       message: 'Emails sent successfully to valid recipients.',
@@ -559,6 +573,7 @@ app.post('/send-manual-emails', async (req, res) => {
     res.status(500).json({ message: 'Error sending emails.', error });
   }
 });
+
 // Middleware to check if email content is set
 const checkEmailContent = (req, res, next) => {
   if (!dynamicEmailContent) {
@@ -626,7 +641,7 @@ const tokenWithoutBearer = token.startsWith('Bearer ') ? token.split(' ')[1] : t
           if (cleanedEmail !== "lavanya.varshney2104@gmail.com") {
           const existingUser = await User.findOne({ email: cleanedEmail });
           if (existingUser) {
-            console.log(`Duplicate email found: ${cleanedEmail}`);
+            console.log(Duplicate email found: ${cleanedEmail});
             continue; // Skip if the email already exists
           }
         
@@ -639,10 +654,10 @@ const tokenWithoutBearer = token.startsWith('Bearer ') ? token.split(' ')[1] : t
           if (delay !== null) {
             setTimeout(async () => {
               await sendEmailAndNotifyWebhook(decoded.name, cleanedEmail,cleanedName,attachments);
-              console.log(`Scheduled email sent to ${cleanedEmail} after ${req.body.scheduleTime}`);
+              console.log(Scheduled email sent to ${cleanedEmail} after ${req.body.scheduleTime});
             }, delay);
           } else {
-            console.log(`Invalid schedule time for ${cleanedEmail}. Email not scheduled.`);
+            console.log(Invalid schedule time for ${cleanedEmail}. Email not scheduled.);
           }
         } else {
           // Send email immediately if no schedule is set
@@ -686,15 +701,14 @@ app.post('/api/webhook', async (req, res) => {
   try {
     const event = req.body;
 
-    // Check if the event is an order creation event
     if (event && event.meta.event_name === "order_created") {
       const customerEmail = event.data.attributes.user_email;
       const productName = event.data.attributes.first_order_item.product_name;
 
-      console.log(`Product purchased: ${productName}`);
+      console.log(productName);
       const user = await User.findOne({ email: customerEmail });
       if (!user) {
-        return res.status(404).json({ message: "User  not found." });
+        return res.status(404).json({ message: "User not found." });
       }
 
       // Determine plan based on product_name
@@ -708,37 +722,32 @@ app.post('/api/webhook', async (req, res) => {
         emailLimit = 12;    // Basic email limit
       } 
 
-      // Update user's plan and email limit
+      // Only update plan and email limit
       user.planStatus = planStatus;
       user.emailLimit = emailLimit;
 
-      // Initialize session email count if not already done
-      if (!sessionEmailCount[customerEmail]) {
-        sessionEmailCount[customerEmail] = 0; // Initialize session count for the user
-      }
-
       // Logic for Free to Basic transition
-      if (planStatus === "basic" && sessionEmailCount[customerEmail] > emailLimit) {
-        sessionEmailCount[customerEmail] = emailLimit;  // Cap session count to the new limit
+      if (user.planStatus === "basic" && user.emailsSent > emailLimit) {
+        user.emailsSent = emailLimit;  // Ensure email count doesn't exceed basic limit (12)
       }
 
       // Logic for Basic to Premium transition
-      if (planStatus === "premium") {
-        if (sessionEmailCount[customerEmail] > emailLimit) {
-          sessionEmailCount[customerEmail] = emailLimit;  // Cap session count to the new limit
+      if (user.planStatus === "premium") {
+        // No reset of emailsSent unless the user was on free plan and exceeded limits
+        if (user.emailsSent > emailLimit) {
+          user.emailsSent = emailLimit;  // Ensure email count doesn't exceed basic limit (12) for basic to premium transition
         }
       }
 
       await user.save();
 
-      console.log(`User  ${user.email} upgraded to ${user.planStatus} plan. New limit: ${user.emailLimit}`);
-      return res.status(200).json({ message: `User  upgraded to ${user.planStatus} successfully` });
+      console.log(User ${user.email} upgraded to ${user.planStatus} plan. New limit: ${user.emailLimit});
+      return res.status(200).json({ message: User upgraded to ${user.planStatus} successfully });
     }
 
-    // If the event is not recognized
     res.status(400).json({ message: "Invalid event type" });
   } catch (error) {
-    console.error("Error processing webhook:", error);
+    console.error("Error processing Lemon Squeezy webhook:", error);
     res.status(500).json({ message: "Internal Server Error" });
   }
 });
@@ -747,5 +756,5 @@ app.post('/api/webhook', async (req, res) => {
 
 // Start the server
 app.listen(PORT, () => {
-  console.log(`Server is running on http://localhost:${PORT}`);
+  console.log(Server is running on http://localhost:${PORT});
 });
