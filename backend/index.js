@@ -422,25 +422,20 @@ const sendEmailAndNotifyWebhook = async ( senderName,recipientEmail,recipientNam
 };
 app.post('/send-manual-emails', async (req, res) => {
   const token = req.headers['authorization'];  // Get the token from the headers
-  console.log(token);
   if (!token) {
     return res.status(400).json({ message: 'No token provided' });
   }
 
-  // Remove "Bearer " prefix if present
   const tokenWithoutBearer = token.startsWith('Bearer ') ? token.split(' ')[1] : token;
   let decoded;
   try {
     decoded = verifyToken(tokenWithoutBearer); 
-    console.log(decoded); // Verify the token to get user info
   } catch (error) {
     return res.status(401).json({ message: 'Invalid or expired token' });
   }
 
   const { emailList, scheduleEmail, scheduleTime } = req.body; // Add scheduling options
-  console.log("emailList", emailList);
   const emailContent = req.body.emailContent; // Access the email content
-  console.log('Email content received:', emailContent);
 
   dynamicEmailContent = emailContent;
 
@@ -469,7 +464,8 @@ app.post('/send-manual-emails', async (req, res) => {
   if (!user) {
     return res.status(404).json({ message: 'User  not found' });
   }
- const FREE_EMAIL_LIMIT = 10;
+
+  const FREE_EMAIL_LIMIT = 10;
   const BASIC_EMAIL_LIMIT = 12;
   const PREMIUM_EMAIL_LIMIT = 1000;
 
@@ -484,6 +480,7 @@ app.post('/send-manual-emails', async (req, res) => {
       message: 'Email limit reached for your current plan. Please upgrade.',
     });
   }
+
   try {
     // Process each valid email
     const emailPromises = validEmails.map(async ({ name, email }) => {
@@ -491,7 +488,6 @@ app.post('/send-manual-emails', async (req, res) => {
       if (email !== "lavanya.varshney2104@gmail.com") {
         const existingUser  = await User.findOne({ email: email });
         if (!existingUser ) {
-          // Add user to the database if they don't already exist
           const newUser  = new User({
             name: name,
             email: email,
@@ -500,7 +496,6 @@ app.post('/send-manual-emails', async (req, res) => {
           await newUser .save();
           console.log(`User  added to database: ${name}, ${email}`);
         } else {
-          // Log to the console instead of alert
           throw new Error(`User  already exists: ${name}, ${email}`);
         }
       }
@@ -508,14 +503,13 @@ app.post('/send-manual-emails', async (req, res) => {
       // Email sending logic
       const sendEmail = async () => {
         await sendEmailAndNotifyWebhook(decoded.name, email, name);
-        user.emailsSent += 1; 
         sessionEmailCount[decoded.email] += 1; // Increment session email count
+        user.emailsSent += 1; // Increment emailsSent in the database
         await user.save(); // Save the updated user instance
-        console.log("emailSent count",sessionEmailCount[decoded.email]);
+        console.log("emailSent count", sessionEmailCount[decoded.email]);
       };
 
       if (scheduleEmail && scheduleTime) {
-        // If scheduling is enabled, calculate delay and schedule the email
         const delay = parseScheduleTime(scheduleTime);
         if (delay !== null) {
           setTimeout(sendEmail, delay);
@@ -524,25 +518,21 @@ app.post('/send-manual-emails', async (req, res) => {
           console.log(`Invalid schedule time for ${email}. Email not scheduled.`);
         }
       } else {
-        // Send email immediately if no scheduling is set
         await sendEmail();
-         user.emailsSent += 1; // Increment emailsSent in the database
-        await user.save();
       }
     });
-
 
     // Wait for all email sending tasks to complete
     await Promise.all(emailPromises);
 
     // Check for plan upgrades based on session count
-    if (sessionEmailCount[decoded.email] === FREE_EMAIL_LIMIT && user.planStatus === "free") {
+    if (sessionEmailCount[decoded.email] >= FREE_EMAIL_LIMIT && user.planStatus === "free") {
       user.planStatus = "basic"; // Upgrade to basic
-      console.log("plan upgraded to",user.planStatus );
+      console.log("User  upgraded to Basic plan");
       await user.save();
-    } else if (sessionEmailCount[decoded.email] === BASIC_EMAIL_LIMIT && user.planStatus === "basic") {
+    } else if (sessionEmailCount[decoded.email] >= BASIC_EMAIL_LIMIT && user.planStatus === "basic") {
       user.planStatus = "premium"; // Upgrade to premium
-      console.log("plan upgraded to",user.planStatus );
+      console.log("User  upgraded to Premium plan");
       await user.save();
     }
 
