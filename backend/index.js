@@ -697,18 +697,18 @@ app.post('/api/webhook', async (req, res) => {
       }
 
       // Determine plan based on product_name
-      let emailLimit, planStatus;
+      let emailLimit, plan;
 
       if (productName.includes("premium")) {
-        planStatus = "premium";
+        plan = "premium";
         emailLimit = 1000;  // Premium email limit
       } else {
-        planStatus = "basic";
+        plan= "basic";
         emailLimit = 12;    // Basic email limit
       } 
 
       // Only update plan and email limit
-      user.planStatus = planStatus;
+      user.planStatus = plan;
       user.emailLimit = emailLimit;
 
       // Check session email count
@@ -717,12 +717,12 @@ app.post('/api/webhook', async (req, res) => {
       }
 
    // Logic for Free to Basic transition
-      if (planStatus === "basic" && sessionEmailCount[customerEmail] > emailLimit) {
+      if (plan === "basic" && sessionEmailCount[customerEmail] > emailLimit) {
         sessionEmailCount[customerEmail] = emailLimit;  // Cap session count to the new limit
       }
 
       // Logic for Basic to Premium transition
-      if (planStatus === "premium") {
+      if (plan === "premium") {
         if (sessionEmailCount[customerEmail] > emailLimit) {
           sessionEmailCount[customerEmail] = emailLimit;  // Cap session count to the new limit
         }
