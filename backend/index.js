@@ -494,12 +494,12 @@ const FREE_EMAIL_LIMIT = 10;
 const BASIC_EMAIL_LIMIT = 12;
 const PREMIUM_EMAIL_LIMIT = 1000;
 
-console.log(User's emailsSent before sending: ${user.emailsSent});
+console.log(`User's emailsSent before sending: ${user.emailsSent}`);
 
 // Check if the user has exceeded their plan's email limit
 if (user.planStatus === "free" && user.emailsSent >= FREE_EMAIL_LIMIT) {
   // Redirect free plan users to upgrade
-  const checkoutUrl = https://myappstore.lemonsqueezy.com/buy/45f80958-7809-49ef-8a3f-5aa75851adc3; // Free -> Premium URL
+  const checkoutUrl = `https://myappstore.lemonsqueezy.com/buy/45f80958-7809-49ef-8a3f-5aa75851adc3`; // Free -> Premium URL
   return res.status(402).json({
     message: 'Email limit reached. Please upgrade to Premium.',
     checkoutUrl
@@ -508,7 +508,7 @@ if (user.planStatus === "free" && user.emailsSent >= FREE_EMAIL_LIMIT) {
 
 if (user.planStatus === "basic" && user.emailsSent >= BASIC_EMAIL_LIMIT) {
   // Redirect basic plan users to upgrade to Premium
-  const checkoutUrl = https://myappstore.lemonsqueezy.com/buy/2f666a6a-1ebb-4bdb-bfae-2e942ba9d12a; // Basic -> Premium URL
+  const checkoutUrl =` https://myappstore.lemonsqueezy.com/buy/2f666a6a-1ebb-4bdb-bfae-2e942ba9d12a`; // Basic -> Premium URL
   return res.status(402).json({
     message: 'You have reached the Basic plan limit (12 emails). Please upgrade to Premium.',
     checkoutUrl
@@ -517,7 +517,7 @@ if (user.planStatus === "basic" && user.emailsSent >= BASIC_EMAIL_LIMIT) {
 
 if (user.planStatus === "premium" && user.emailsSent >= PREMIUM_EMAIL_LIMIT) {
   // Premium users can be blocked if they exceed their limit (optional)
-  const checkoutUrl = https://myappstore.lemonsqueezy.com/buy/2f666a6a-1ebb-4bdb-bfae-2e942ba9d12a; // Premium -> Reached Limit URL
+  const checkoutUrl = `https://myappstore.lemonsqueezy.com/buy/2f666a6a-1ebb-4bdb-bfae-2e942ba9d12a`; // Premium -> Reached Limit URL
   return res.status(402).json({
     message: 'Email limit reached. Please upgrade to a higher plan.',
     checkoutUrl
@@ -544,12 +544,12 @@ if (user.planStatus === "premium" && user.emailsSent >= PREMIUM_EMAIL_LIMIT) {
         });
        
         await newUser.save();
-        console.log(User added to database: ${name}, ${email});
+        console.log(`User added to database: ${name}, ${email}`);
       }
       
       else {
         // Log to the console instead of alert
-        throw new Error(User already exists: ${name}, ${email});
+        throw new Error(`User already exists: ${name}, ${email}`);
   
        
       }
@@ -564,10 +564,10 @@ if (user.planStatus === "premium" && user.emailsSent >= PREMIUM_EMAIL_LIMIT) {
             user.emailsSent += 1; 
             await user.save(); // Save the updated user instance
            console.log("emailSent count",user.emailsSent);
-            console.log(Scheduled email sent to ${email} after ${scheduleTime});
+            console.log(`Scheduled email sent to ${email} after ${scheduleTime}`);
           }, delay);
         } else {
-          console.log(Invalid schedule time for ${email}. Email not scheduled.);
+          console.log(`Invalid schedule time for ${email}. Email not scheduled.`);
         }
       } else {
         // Send email immediately if no scheduling is set
@@ -759,8 +759,8 @@ app.post('/api/webhook', async (req, res) => {
 
       await user.save();
 
-      console.log(User ${user.email} upgraded to ${user.planStatus} plan. New limit: ${user.emailLimit});
-      return res.status(200).json({ message: User upgraded to ${user.planStatus} successfully });
+      console.log(`User ${user.email} upgraded to ${user.planStatus} plan. New limit: ${user.emailLimit}`);
+      return res.status(200).json({ `message: User upgraded to ${user.planStatus} successfully` });
     }
 
     res.status(400).json({ message: "Invalid event type" });
@@ -774,5 +774,5 @@ app.post('/api/webhook', async (req, res) => {
 
 // Start the server
 app.listen(PORT, () => {
-  console.log(Server is running on http://localhost:${PORT});
+  console.log(`Server is running on http://localhost:${PORT}`);
 });
