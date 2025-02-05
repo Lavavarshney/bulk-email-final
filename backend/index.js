@@ -345,12 +345,9 @@ console.log("Email Tracking Data: ", emailTracking);
   .filter(([senderEmail]) => senderEmail === userEmail) // Only include the current user's data    
   .map(([senderEmail, { delivered, opened }]) => {
     const openRate = delivered > 0 ? ((opened / delivered) * 100).toFixed(2) : "0.00";
-    return { email: senderEmail, delivered, opened, openRate: ${openRate}% };
+    return { email: senderEmail, delivered, opened  };
   })
-  .filter(rate => rate.email !== 'Unknown Email');
-
-
-    console.log('User open rates:', userOpenRates);
+   console.log('User open rates:', userOpenRates);
     return res.status(200).json(emailTracking);
     
   });
