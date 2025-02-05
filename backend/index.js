@@ -474,7 +474,7 @@ app.post('/send-manual-emails', async (req, res) => {
   const BASIC_EMAIL_LIMIT = 12;
   const PREMIUM_EMAIL_LIMIT = 1000;
 
-  console.log(`User 's emailsSent before sending: ${user.emailsSent}`);
+  //console.log(`User 's emailsSent before sending: ${user.emailsSent}`);
 
   // Initialize session email count if not already done
   if (!sessionEmailCount[decoded.email]) {
@@ -541,9 +541,11 @@ app.post('/send-manual-emails', async (req, res) => {
     // Check for plan upgrades based on session count
     if (sessionEmailCount[decoded.email] === FREE_EMAIL_LIMIT && user.planStatus === "free") {
       user.planStatus = "basic"; // Upgrade to basic
+      console.log("plan upgraded to",user.planStatus );
       await user.save();
     } else if (sessionEmailCount[decoded.email] === BASIC_EMAIL_LIMIT && user.planStatus === "basic") {
       user.planStatus = "premium"; // Upgrade to premium
+      console.log("plan upgraded to",user.planStatus );
       await user.save();
     }
 
@@ -709,18 +711,23 @@ app.post('/api/webhook', async (req, res) => {
       user.planStatus = planStatus;
       user.emailLimit = emailLimit;
 
-      // Logic for Free to Basic transition
-      if (user.planStatus === "basic" && user.emailsSent > emailLimit) {
-        user.emailsSent = emailLimit;  // Ensure email count doesn't exceed basic limit (12)
+      // Check session email count
+      if (!sessionEmailCount[customerEmail]) {
+        sessionEmailCount[customerEmail] = 0; // Initialize session count for the user
+      }
+
+   // Logic for Free to Basic transition
+      if (planStatus === "basic" && sessionEmailCount[customerEmail] > emailLimit) {
+        sessionEmailCount[customerEmail] = emailLimit;  // Cap session count to the new limit
       }
 
       // Logic for Basic to Premium transition
-      if (user.planStatus === "premium") {
-        // No reset of emailsSent unless the user was on free plan and exceeded limits
-        if (user.emailsSent > emailLimit) {
-          user.emailsSent = emailLimit;  // Ensure email count doesn't exceed basic limit (12) for basic to premium transition
+      if (planStatus === "premium") {
+        if (sessionEmailCount[customerEmail] > emailLimit) {
+          sessionEmailCount[customerEmail] = emailLimit;  // Cap session count to the new limit
         }
       }
+
 
       await user.save();
 
