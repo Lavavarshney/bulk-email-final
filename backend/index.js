@@ -531,12 +531,23 @@ app.post('/send-manual-emails', async (req, res) => {
     if (sessionEmailCount[decoded.email] >= FREE_EMAIL_LIMIT && user.planStatus === "free") {
       user.planStatus = "basic"; // Upgrade to basic
       console.log("User  upgraded to Basic plan");
+      const checkoutUrl = `https://myappstore.lemonsqueezy.com/buy/45f80958-7809-49ef-8a3f-5aa75851adc3`; // Free -> Premium URL
       await user.save();
+        return res.status(402).json({
+    message: 'Email limit reached. Please upgrade to Premium.',
+    checkoutUrl
+  });
+
     } else if (sessionEmailCount[decoded.email] >= BASIC_EMAIL_LIMIT && user.planStatus === "basic") {
       user.planStatus = "premium"; // Upgrade to premium
       console.log("User  upgraded to Premium plan");
       await user.save();
-    }
+    const checkoutUrl =`https://myappstore.lemonsqueezy.com/buy/2f666a6a-1ebb-4bdb-bfae-2e942ba9d12a`; // Basic -> Premium URL
+  return res.status(402).json({
+    message: 'You have reached the Basic plan limit (12 emails). Please upgrade to Premium.',
+    checkoutUrl
+  });
+}
 
     res.status(200).json({
       message: 'Emails sent successfully to valid recipients.',
