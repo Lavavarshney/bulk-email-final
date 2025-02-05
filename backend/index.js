@@ -324,8 +324,10 @@ app.post('/api/track-delivery', async (req, res) => {
     console.log(`Email delivered: ${email}, Total Delivered: ${user.emailsSent}`);
   }
 
-  // Respond with a success message
-  res.status(200).json({ message: 'Delivery tracked successfully' });
+res.status(200).json({ 
+  message: 'Delivery tracked successfully', 
+  totalDelivered: user.emailsSent // Use camelCase for property names
+});
 });
 app.get('/open-rate', async (req, res) => {
   console.log(req.headers); // Log all headers
