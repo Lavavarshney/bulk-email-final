@@ -357,7 +357,7 @@ app.get('/click-rate', async (req, res) => {
   const rates = Object.entries(emailTracking).map(([email, { delivered, clicked }]) => {
     const effectiveDelivered = delivered || totalUsers; // Fallback to total user count if delivered is 0
     const clickRate = effectiveDelivered > 0 ? ((clicked / effectiveDelivered) * 100).toFixed(2) : 0;
-    return { email, delivered: effectiveDelivered, clicked, clickRate: ${clickRate}% };
+    return { email, delivered: effectiveDelivered, clicked};
   });
 
   res.status(200).json(rates);
