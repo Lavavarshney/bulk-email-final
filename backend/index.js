@@ -309,6 +309,9 @@ app.post('/send-email-content', async (req, res) => {
 app.post('/api/track-delivery', async (req, res) => {
   const { email } = req.body; // Assuming you send email and messageId in the request body
 
+  // Initialize totalDelivered variable
+  let totalDelivered;
+
   // Log the delivery event
   if (email) {
     // Find the user by email
@@ -320,14 +323,17 @@ app.post('/api/track-delivery', async (req, res) => {
     // Increment the delivered count for the specific email
     user.emailsSent += 1; // Increment emailsSent in the database
     await user.save(); // Save the updated user instance
- const totalDelivered = user.emailsSent;
+    totalDelivered = user.emailsSent; // Assign to totalDelivered
     console.log(`Email delivered: ${email}, Total Delivered: ${totalDelivered}`);
+  } else {
+    return res.status(400).json({ message: 'Email is required' });
   }
 
-res.status(200).json({ 
-  message: 'Delivery tracked successfully', 
-  emailsSent: totalDelivered// Use camelCase for property names
-});
+  // Respond with a success message and the updated emailsSent count
+  return res.status(200).json({ 
+    message: 'Delivery tracked successfully', 
+    emailsSent: totalDelivered // Use camelCase for property names
+  });
 });
 app.get('/open-rate', async (req, res) => {
   console.log(req.headers); // Log all headers
