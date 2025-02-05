@@ -524,7 +524,9 @@ app.post('/send-manual-emails', async (req, res) => {
 
     // Wait for all email sending tasks to complete
     await Promise.all(emailPromises);
-
+    console.log("emailSent",sessionEmailCount[decoded.email]);
+    console.log("free-email-limit",FREE_EMAIL_LIMIT);
+    console.log("planStatus",user.planStatus);
     // Check for plan upgrades based on session count
     if (sessionEmailCount[decoded.email] >= FREE_EMAIL_LIMIT && user.planStatus === "free") {
       user.planStatus = "basic"; // Upgrade to basic
