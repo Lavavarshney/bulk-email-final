@@ -508,7 +508,7 @@ app.post('/send-manual-emails', async (req, res) => {
         user.emailsSent += 1; 
         sessionEmailCount[decoded.email] += 1; // Increment session email count
         await user.save(); // Save the updated user instance
-        console.log("emailSent count", user.emailsSent);
+        console.log("emailSent count",sessionEmailCount[decoded.email]);
       };
 
       if (scheduleEmail && scheduleTime) {
@@ -523,6 +523,8 @@ app.post('/send-manual-emails', async (req, res) => {
       } else {
         // Send email immediately if no scheduling is set
         await sendEmail();
+         user.emailsSent += 1; // Increment emailsSent in the database
+        await user.save();
       }
     });
 
