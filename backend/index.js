@@ -306,6 +306,27 @@ app.post('/send-email-content', async (req, res) => {
     res.status(500).json({ message: 'An error occurred while processing the email content.' });
   }
 });
+app.post('/api/track-delivery', async (req, res) => {
+  const { email, messageId } = req.body; // Assuming you send email and messageId in the request body
+
+  // Log the delivery event
+  if (email && messageId) {
+    // Find the user by email
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).json({ message: 'User  not found' });
+    }
+
+    // Increment the delivered count for the specific email
+    user.emailsSent += 1; // Increment emailsSent in the database
+    await user.save(); // Save the updated user instance
+
+    console.log(`Email delivered: ${email}, Message ID: ${messageId}, Total Delivered: ${user.emailsSent}`);
+  }
+
+  // Respond with a success message
+  res.status(200).json({ message: 'Delivery tracked successfully' });
+});
 app.get('/open-rate', async (req, res) => {
   console.log(req.headers); // Log all headers
    const token =await  req.headers['authorization']?.split(' ')[1]; // Extract the token from the Authorization header
