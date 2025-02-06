@@ -14,7 +14,8 @@ const userSchema = new mongoose.Schema({
   subscribed: { type: Boolean, default: true }, // Add this field
   emailsSent: { type: Number, default: 0 }, // Track the number of emails sent
   planStatus: {type: String, enum:["free","basic","premium","paid"], default:"free"},
-  emailLimit: {type: Number, default: 10}
+  emailLimit: {type: Number, default: 10},
+ lastEmailSentAt: { type: Date, default: null } // Track last email sent timestamp
 });
 
 const User = mongoose.model('User', userSchema);
