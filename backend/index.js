@@ -310,12 +310,6 @@ app.post('/api/track-delivery', async (req, res) => {
   const { email } = req.body;
 
   // Check if the email has already been counted in this session
-  if (req.session.emailsSentCounted) {
-    return res.status(200).json({ 
-      message: 'Delivery already counted for this session', 
-      emailsSent: req.session.totalDelivered 
-    });
-  }
 
   // Initialize totalDelivered variable
   let totalDelivered = 0;
@@ -325,12 +319,16 @@ app.post('/api/track-delivery', async (req, res) => {
     if (!user) {
       return res.status(404).json({ message: 'User  not found' });
     }
-
-    user.emailsSent += 1; 
-    await user.save(); 
+ // Check if the last email was sent recently (e.g., in the last 5 minutes)
+  const now = new Date();
+  const lastSentTime = user.lastEmailSentAt;
+   if (!lastSentTime || now - lastSentTime > 2 * 60 * 1000) { // 5 minutes threshold
+    user.emailsSent += 1;
+    user.lastEmailSentAt = now; // Update last sent timestamp
+    await user.save();
+  }
     totalDelivered = user.emailsSent; 
-    req.session.emailsSentCounted = true; // Mark as counted
-    req.session.totalDelivered = totalDelivered; // Store the count in session
+
     console.log(`Email delivered: ${email}, Total Delivered: ${totalDelivered}`);
   } else {
     return res.status(400).json({ message: 'Email is required' });
