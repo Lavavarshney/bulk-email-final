@@ -341,51 +341,40 @@ app.post('/api/track-delivery', async (req, res) => {
 });
 app.get('/track-open', async (req, res) => {
   const { email } = req.query;
-  let totalEmailsOpened=0;
+  let totalEmailsOpened = 0;
+
   if (email) {
-    // Find user by email and update their open count
-    const user = await User.findOne({ email });
+    try {
+      const user = await User.findOne({ email });
 
-    if (!user) {
-      return res.status(404).json({ message: 'User not found' });
+      if (!user) {
+        return res.status(404).json({ message: 'User not found' });
+      }
+
+      user.emailsOpened += 1;
+      user.lastEmailOpenedAt = new Date();
+      totalEmailsOpened = user.emailsOpened;
+
+      await user.save();
+      console.log(`📩 Email opened by: ${email}, Total Opens: ${user.emailsOpened}`);
+
+    } catch (error) {
+      console.error('Error updating user:', error);
+      return res.status(500).json({ message: 'Error tracking email open' });
     }
-     user.emailsOpened += 1;
-     user.lastEmailOpenedAt = new Date(); // Store the timestamp of the last email opened
-     totalEmailsOpened = user.emailsOpened;
-    await user.save();
-     console.log(`📩 Email opened by: ${email}, Total Opens: ${user.emailsOpened}`);
   }
 
-  // Return a 1x1 transparent pixel
-  res.setHeader("Content-Type", "image/png");
-  res.send(Buffer.from(
-    "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/wcAAgAB/ep0ZoIAAAAASUVORK5CYII=",
-    "base64"
-  ));
-
+  // Send totalEmailsOpened in the response
+  res.status(200).json({
+    message: 'Email open tracked successfully',
+    totalEmailsOpened
   });
-app.get('/get-email-opens', async (req, res) => {
-  const { email } = req.query;
 
-  if (!email) {
-    return res.status(400).json({ message: 'Email is required' });
-  }
-
-  try {
-    // Find the user by email and return the email open count
-    const user = await User.findOne({ email });
-
-    if (!user) {
-      return res.status(404).json({ message: 'User not found' });
-    }
-
-    // Return the number of emails opened
-    return res.status(200).json({ emailsOpened: user.emailsOpened });
-  } catch (error) {
-    console.error('Error fetching email opens:', error);
-    return res.status(500).json({ message: 'Error fetching email opens' });
-  }
+  // Optionally, send a 1x1 transparent pixel image as before
+  res.setHeader("Content-Type", "image/png");
+  res.send(Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/wcAAgAB/ep0ZoIAAAAASUVORK5CYII=", "base64"));
 });
+
 
 
 app.get('/click-rate', async (req, res) => {
