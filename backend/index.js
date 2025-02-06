@@ -81,7 +81,7 @@ app.post('/login', async (req, res) => {
      // Reset session email count for the user
     // Generate JWT token
     const token = generateToken(user);
-       req.session.emailsSentCounted = false; // Initialize to false
+     
  res.json({ token, message: 'Login successful' });
   } catch (error) {
     console.error(error);
