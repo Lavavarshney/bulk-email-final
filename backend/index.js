@@ -362,12 +362,31 @@ app.get('/track-open', async (req, res) => {
     "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/wcAAgAB/ep0ZoIAAAAASUVORK5CYII=",
     "base64"
   ));
-     // Send back the total number of opens for this user
-    return res.status(200).json({
-      message: `Email opened successfully.`,
-      totalOpens:  totalEmailsOpened // Return the total number of opens
-    });
+
   });
+app.get('/get-email-opens', async (req, res) => {
+  const { email } = req.query;
+
+  if (!email) {
+    return res.status(400).json({ message: 'Email is required' });
+  }
+
+  try {
+    // Find the user by email and return the email open count
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Return the number of emails opened
+    return res.status(200).json({ emailsOpened: user.emailsOpened });
+  } catch (error) {
+    console.error('Error fetching email opens:', error);
+    return res.status(500).json({ message: 'Error fetching email opens' });
+  }
+});
+
 
 app.get('/click-rate', async (req, res) => {
   const totalUsers = await User.countDocuments({});
