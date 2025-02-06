@@ -339,29 +339,34 @@ app.post('/api/track-delivery', async (req, res) => {
     emailsSent: totalDelivered 
   });
 });
-app.get('/open-rate', async (req, res) => {
-  console.log(req.headers); // Log all headers
-   const token =await  req.headers['authorization']?.split(' ')[1]; // Extract the token from the Authorization header
-   console.log("token",token)
-    if (!token) {
-      return res.status(401).json({ message: 'No token provided' });
+app.get('/track-open', async (req, res) => {
+  const { email } = req.query;
+  let totalEmailsOpened=0;
+  if (email) {
+    // Find user by email and update their open count
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
     }
-  
-  
-     const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY); // Verify and decode the token
-    const userEmail = decoded.email; // Extract the user's email from the token
-    // console.log("Looking for user email:", userEmail);
-console.log("Email Tracking Data: ", emailTracking);
-    // Filter the emailTracking data for the current user if needed
-    const userOpenRates = Object.entries(emailTracking)
-  .filter(([senderEmail]) => senderEmail === userEmail) // Only include the current user's data    
-  .map(([senderEmail, { delivered, opened }]) => {
-    const openRate = delivered > 0 ? ((opened / delivered) * 100).toFixed(2) : "0.00";
-    return { email: senderEmail, delivered, opened  };
-  })
-   console.log('User open rates:', userOpenRates);
-    return res.status(200).json(emailTracking);
-    
+     user.emailsOpened += 1;
+     user.lastEmailOpenedAt = new Date(); // Store the timestamp of the last email opened
+     totalEmailsOpened = user.emailsOpened;
+    await user.save();
+     console.log(`📩 Email opened by: ${email}, Total Opens: ${user.emailsOpened}`);
+  }
+
+  // Return a 1x1 transparent pixel
+  res.setHeader("Content-Type", "image/png");
+  res.send(Buffer.from(
+    "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/wcAAgAB/ep0ZoIAAAAASUVORK5CYII=",
+    "base64"
+  ));
+     // Send back the total number of opens for this user
+    return res.status(200).json({
+      message: `Email opened successfully.`,
+      totalOpens:  totalEmailsOpened // Return the total number of opens
+    });
   });
 
 app.get('/click-rate', async (req, res) => {
@@ -417,12 +422,16 @@ const sendEmailAndNotifyWebhook = async ( senderName,recipientEmail,recipientNam
  // Replace {{name}} placeholder with the actual user name
  //console.log('Sending email with dynamic subject:', subject);
 //console.log("attachments",attachments);
+ const trackingPixelURL = `https://bulk-email-final2.onrender.com/track-open?email=${encodeURIComponent(recipientEmail)}`;
  const personalizedEmailContent = dynamicEmailContent.replace('{{name}}', recipientName);
+    const emailContentWithPixel = `${personalizedEmailContent}
+  <img src="${trackingPixelURL}" alt="Tracking Pixel" width="1" height="1" style="display:none;" />`;
+
     const sendSmtpEmail = {
       sender: {  email: "lavanya.varshney2104@gmail.com", name: senderName },
       to: [{  email: recipientEmail }],
       subject: "hello",
-      htmlContent: personalizedEmailContent,
+      htmlContent:emailContentWithPixel,
       headers: {
         'X-Tracking-Open': 'true', // Enable open tracking
         'X-Tracking-Click': 'true' // Enable click tracking (if needed)
