@@ -450,7 +450,7 @@ const sendEmailAndNotifyWebhook = async ( senderName,recipientEmail,recipientNam
  const trackingPixelURL = `https://bulk-email-final2.onrender.com/track-open?email=${encodeURIComponent(recipientEmail)}`;
  const personalizedEmailContent = dynamicEmailContent.replace('{{name}}', recipientName);
     const emailContentWithPixel = `${personalizedEmailContent}
-  <img src=`${trackingPixelURL}` alt="Tracking Pixel" width="1" height="1" style="display:none;" />`;
+  <img src=`${trackingPixelURL}` alt="Tracking Pixel" width="1" height="1" style="display:none;" />;
 
     const sendSmtpEmail = {
       sender: {  email: "lavanya.varshney2104@gmail.com", name: senderName },
