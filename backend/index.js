@@ -363,18 +363,35 @@ app.get('/track-open', async (req, res) => {
       return res.status(500).json({ message: 'Error tracking email open' });
     }
   }
-
-  // Send totalEmailsOpened in the response
-  res.status(200).json({
-    message: 'Email open tracked successfully',
-    totalEmailsOpened
-  });
-
   // Optionally, send a 1x1 transparent pixel image as before
   res.setHeader("Content-Type", "image/png");
   res.send(Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/wcAAgAB/ep0ZoIAAAAASUVORK5CYII=", "base64"));
 });
 
+app.get('/email-opens', async (req, res) => {
+  const { email } = req.query;
+
+  if (!email) {
+    return res.status(400).json({ message: 'Email is required' });
+  }
+
+  try {
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    res.status(200).json({
+      email,
+      totalEmailsOpened: user.emailsOpened,
+      lastOpenedAt: user.lastEmailOpenedAt
+    });
+  } catch (error) {
+    console.error('Error fetching email open count:', error);
+    res.status(500).json({ message: 'Error fetching email open count' });
+  }
+});
 
 
 app.get('/click-rate', async (req, res) => {
