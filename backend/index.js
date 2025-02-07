@@ -298,8 +298,7 @@ app.post('/api/track-delivery', async (req, res) => {
 
 app.get('/track-open', async (req, res) => {
   const { email } = req.query;
-  let totalEmailsOpened = 0;
-
+  
   if (email) {
     try {
       const user = await User.findOne({ email });
@@ -310,7 +309,7 @@ app.get('/track-open', async (req, res) => {
 
       user.emailsOpened += 1;
       user.lastEmailOpenedAt = new Date();
-      totalEmailsOpened = user.emailsOpened;
+     // totalEmailsOpened = user.emailsOpened;
 
       await user.save();
       console.log(`📩 Email opened by: ${email}, Total Opens: ${user.emailsOpened}`);
@@ -327,7 +326,7 @@ app.get('/track-open', async (req, res) => {
 
 app.post('/email-opens', async (req, res) => {
   const { email } = req.body;
-
+let totalEmailsOpened = 0;
   if (!email) {
     return res.status(400).json({ message: 'Email is required' });
   }
@@ -338,7 +337,7 @@ app.post('/email-opens', async (req, res) => {
     if (!user) {
       return res.status(404).json({ message: 'User  not found' });
     }
-console.log("postive response of email opened", totalEmailsOpened);
+console.log("postive response of email opened", user.emailsOpened);
     res.status(200).json({
       email,
       totalEmailsOpened: user.emailsOpened,
