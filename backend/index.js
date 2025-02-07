@@ -8,9 +8,7 @@ const User = require('./models/User'); // MongoDB User model
 const cors = require('cors');
 const axios = require('axios'); // For tracking clicks
 const { generateToken, verifyToken } = require('./login'); // Adjust the path to your JWT file
-const { appendFile } = require('fs/promises');
 const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -19,39 +17,39 @@ require('dotenv').config();
 const apiKey = process.env.BREVO_API_KEY;
 const emailTracking = {}; // { email: { delivered: count, clicked: count } }
 // Allow requests from your frontend origin
-app.use(cors({  allowedHeaders: ['Content-Type', 'authorization'], }));
+app.use(cors({ allowedHeaders: ['Content-Type', 'authorization'] }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
 app.post('/signup', async (req, res) => {
-  const { name, email, password, confirmPassword  } = req.body;
+  const { name, email, password, confirmPassword } = req.body;
   console.log(req.body); // Log the request body to debug
-  if (!name || !email || !password || !confirmPassword ) {
+  if (!name || !email || !password || !confirmPassword) {
     return res.status(400).json({ message: 'Name, email, and password are required' });
   }
   if (password !== confirmPassword) {
     return res.status(400).json({ message: 'Passwords do not match' });
   }
   try {
-    const existingUser = await User.findOne({ email });
-    if (existingUser) {
-      return res.status(400).json({ message: 'User already exists' });
+    const existingUser  = await User.findOne({ email });
+    if (existingUser ) {
+      return res.status(400).json({ message: 'User  already exists' });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
     console.log("Hashed Password:", hashedPassword); // Debugging to check if hash is working correctly
-   
-    // Ensure password is stored correctly
-    const newUser = new User({ name, email, password: hashedPassword });
-    await newUser.save();
-    const token = generateToken(newUser);
 
-    res.status(201).json({ message: 'User created successfully', token });
+    // Ensure password is stored correctly
+    const newUser  = new User({ name, email, password: hashedPassword });
+    await newUser .save();
+    const token = generateToken(newUser );
+
+    res.status(201).json({ message: 'User  created successfully', token });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Internal server error' });
   }
 });
-
 
 app.post('/login', async (req, res) => {
   const { email, password } = req.body;
@@ -61,28 +59,28 @@ app.post('/login', async (req, res) => {
     const user = await User.findOne({ email });
 
     if (!user) {
-      return res.status(400).json({ message: 'User not found' });
+      return res.status(400).json({ message: 'User  not found' });
     }
     console.log('Password:', password);
-  console.log('Hashed Password from DB:', user.password);
-  console.log("User from DB:", user); // Debug user data
-  console.log("Password from Request:", password);
-  console.log("Stored Hashed Password:", user.password);
+    console.log('Hashed Password from DB:', user.password);
+    console.log("User  from DB:", user); // Debug user data
+    console.log("Password from Request:", password);
+    console.log("Stored Hashed Password:", user.password);
 
-  // Ensure user has a password before comparing
-  if (!user.password) {
-    return res.status(500).json({ message: 'No password stored for this user' });
-  }
+    // Ensure user has a password before comparing
+    if (!user.password) {
+      return res.status(500).json({ message: 'No password stored for this user' });
+    }
     // Validate password using bcrypt
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
       return res.status(400).json({ message: 'Invalid password' });
     }
-     // Reset session email count for the user
+    // Reset session email count for the user
     // Generate JWT token
     const token = generateToken(user);
-     
- res.json({ token, message: 'Login successful' });
+
+    res.json({ token, message: 'Login successful' });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Internal server error' });
@@ -105,7 +103,7 @@ app.get('/current-user', async (req, res) => {
     const user = await User.findOne({ email: decoded.email });
 
     if (!user) {
-      return res.status(400).json({ message: 'User not found' });
+      return res.status(400).json({ message: 'User  not found' });
     }
 
     // Send the current user's data back as a response
@@ -118,8 +116,8 @@ app.get('/current-user', async (req, res) => {
     res.status(401).json({ message: 'Invalid or expired token' });
   }
 });
+
 const checkIfSenderExists = async (email) => {
-  //const apiKey = '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'; // Replace with your actual Brevo API key
   const url = 'https://api.brevo.com/v3/senders'; // Endpoint to get the list of senders
 
   try {
@@ -136,6 +134,7 @@ const checkIfSenderExists = async (email) => {
     throw new Error('Failed to fetch senders');
   }
 };
+
 app.post('/add-verified-sender', async (req, res) => {
   const token = req.headers['authorization'];  // Assuming the token is sent in the Authorization header
 
@@ -151,16 +150,13 @@ app.post('/add-verified-sender', async (req, res) => {
     if (!userEmail) {
       return res.status(400).json({ message: 'Email not found in token' });
     }
-   // Check if the sender already exists
-   const senderExists = await checkIfSenderExists(userEmail);
-   if (senderExists) {
-    return res.status(200).json({ message: 'Sender already verified, ready to send emails.' });
-   }
+    // Check if the sender already exists
+    const senderExists = await checkIfSenderExists(userEmail);
+    if (senderExists) {
+      return res.status(200).json({ message: 'Sender already verified, ready to send emails.' });
+    }
 
     // Make API request to Brevo to add the sender
-    
-
-    // Request to add the current user as a verified sender in Brevo
     const response = await axios.post(url, 
       {
         email: userEmail, 
@@ -176,44 +172,15 @@ app.post('/add-verified-sender', async (req, res) => {
 
     // Handle successful response from Brevo
     res.status(200).json({ message: 'Sender added and verified successfully', data: response.data });
-    console.log("userEmail",userEmail)
+    console.log("userEmail", userEmail);
   } catch (error) {
     console.error('Error adding sender:', error.response ? error.response.data : error.message);
     res.status(500).json({ message: 'Failed to add sender' });
   }
 });
-/*const processedEvents = new Set();
-app.post('/webhook', async(req, res) => {
-  const eventData = req.body;
-  console.log(eventData);
-  const { event, email, 'message-id': messageId, contact_id,sender_email } = eventData;
-  
-   // 🔹 If email is missing in "opened" event, try retrieving it from message-id
-// Initialize tracking for this email if it doesn't exist
-  if (!emailTracking[sender_email]) {
-    emailTracking[sender_email] = { delivered: 0, clicked: 0, opened: 0 };
-  }
-
-  // Handle email events
-  if (event === 'delivered') {
-    emailTracking[sender_email].delivered += 1;
-    console.log(Email ${email} delivered.);
-  } 
-  if (event === 'click') {
-    emailTracking[sender_email].clicked += 1;
-    console.log(Email ${email} clicked.);
-  } 
-if (event === 'unique_opened') {
-      emailTracking[sender_email].opened += 1;
-    console.log(Email ${email} opened.);
-  }
-  
-  res.status(200).send('Webhook received');
-});*/
-
 
 // Example of setting dynamic email content with a placeholder
-dynamicEmailContent = `
+let dynamicEmailContent = `
   <h1>Welcome, {{name}}!</h1>
   <p>Thank you for joining us. We are excited to have you!</p>
 `; 
@@ -226,8 +193,6 @@ brevoApiKey.apiKey = apiKey;
 const apiInstance = new SibApiV3Sdk.TransactionalEmailsApi();
 
 // Connect to MongoDB
-// Connect to MongoDB Atlas
-
 const mongoURI = process.env.MONGODB_URI;
 
 mongoose.connect(mongoURI, {
@@ -237,19 +202,18 @@ mongoose.connect(mongoURI, {
   .then(() => console.log('Connected to MongoDB Atlas'))
   .catch((error) => console.error('Error connecting to MongoDB Atlas:', error));
 
-
 // Setup multer for file upload
 const storage = multer.diskStorage({
-    destination: function (req, file, cb) {
-      cb(null, path.join(__dirname, 'uploads'))
-    },
-    filename: function (req, file, cb) {
-      cb(null, file.originalname)
-    }
-  });
-  
-  const upload = multer({ storage: storage });
-  
+  destination: function (req, file, cb) {
+    cb(null, path.join(__dirname, 'uploads'));
+  },
+  filename: function (req, file, cb) {
+    cb(null, file.originalname);
+  }
+});
+
+const upload = multer({ storage: storage });
+
 // Helper function to convert schedule time into milliseconds
 const parseScheduleTime = (time) => {
   const regex = /(\d+)([smh])/; // Regex to match numbers with time units (seconds, minutes, hours)
@@ -285,31 +249,23 @@ const isValidEmail = (email) => {
 
 // Endpoint to set dynamic email content
 app.post('/send-email-content', async (req, res) => {
-  const { emailContent, scheduleEmail, scheduleTime } = req.body;
+  const { emailContent } = req.body;
 
   if (emailContent) {
     dynamicEmailContent = emailContent; // Save the email content for later use
   }
 
-  /*if (subject) {
-    dynamicEmailSubject = subject;  // Save the subject for later use
-  }*/
-
   try {
     console.log('Received email content:', emailContent);
-  //  console.log('Received subject:', subject);  // Log the subject for debugging
     res.status(200).json({ message: 'Email content updated successfully' });
-
-  
   } catch (error) {
     console.error('Error processing email content:', error);
     res.status(500).json({ message: 'An error occurred while processing the email content.' });
   }
 });
+
 app.post('/api/track-delivery', async (req, res) => {
   const { email } = req.body;
-
-  // Check if the email has already been counted in this session
 
   // Initialize totalDelivered variable
   let totalDelivered = 0;
@@ -319,14 +275,14 @@ app.post('/api/track-delivery', async (req, res) => {
     if (!user) {
       return res.status(404).json({ message: 'User  not found' });
     }
- // Check if the last email was sent recently (e.g., in the last 5 minutes)
-  const now = new Date();
-  const lastSentTime = user.lastEmailSentAt;
-   if (!lastSentTime || now - lastSentTime > 2 * 60 * 1000) { // 5 minutes threshold
-    user.emailsSent += 1;
-    user.lastEmailSentAt = now; // Update last sent timestamp
-    await user.save();
-  }
+    // Check if the last email was sent recently (e.g., in the last 5 minutes)
+    const now = new Date();
+    const lastSentTime = user.lastEmailSentAt;
+    if (!lastSentTime || now - lastSentTime > 2 * 60 * 1000) { // 5 minutes threshold
+      user.emailsSent += 1;
+      user.lastEmailSentAt = now; // Update last sent timestamp
+      await user.save();
+    }
     totalDelivered = user.emailsSent; 
 
     console.log(`Email delivered: ${email}, Total Delivered: ${totalDelivered}`);
@@ -339,6 +295,7 @@ app.post('/api/track-delivery', async (req, res) => {
     emailsSent: totalDelivered 
   });
 });
+
 app.get('/track-open', async (req, res) => {
   const { email } = req.query;
   let totalEmailsOpened = 0;
@@ -348,7 +305,7 @@ app.get('/track-open', async (req, res) => {
       const user = await User.findOne({ email });
 
       if (!user) {
-        return res.status(404).json({ message: 'User not found' });
+        return res.status(404).json({ message: 'User  not found' });
       }
 
       user.emailsOpened += 1;
@@ -379,7 +336,7 @@ app.get('/email-opens', async (req, res) => {
     const user = await User.findOne({ email });
 
     if (!user) {
-      return res.status(404).json({ message: 'User not found' });
+      return res.status(404).json({ message: 'User  not found' });
     }
 
     res.status(200).json({
@@ -393,13 +350,12 @@ app.get('/email-opens', async (req, res) => {
   }
 });
 
-
 app.get('/click-rate', async (req, res) => {
   const totalUsers = await User.countDocuments({});
   const rates = Object.entries(emailTracking).map(([email, { delivered, clicked }]) => {
     const effectiveDelivered = delivered || totalUsers; // Fallback to total user count if delivered is 0
     const clickRate = effectiveDelivered > 0 ? ((clicked / effectiveDelivered) * 100).toFixed(2) : 0;
-    return { email, delivered: effectiveDelivered, clicked};
+    return { email, delivered: effectiveDelivered, clicked };
   });
 
   res.status(200).json(rates);
@@ -422,95 +378,63 @@ app.get('/unsubscribe', async (req, res) => {
     );
 
     if (!user) {
-      return res.status(404).json({ message: 'User not found' });
+      return res.status(404).json({ message: 'User  not found' });
     }
 
-    res.status(200).json({ message: 'You have successfully unsubscribed from our emails.'});
+    res.status(200).json({ message: 'You have successfully unsubscribed from our emails.' });
   } catch (error) {
     console.error('Error unsubscribing user:', error);
     res.status(500).json({ message: 'Error processing the unsubscribe request.' });
   }
 });
 
-
-
 // Helper function to send email
-// Helper function to send email and notify the webhook for analytics
-const sendEmailAndNotifyWebhook = async ( senderName,recipientEmail,recipientName) => {
+const sendEmailAndNotifyWebhook = async (senderName, recipientEmail, recipientName) => {
   try {
-   // const messageId = generateUniqueMessageId();  // Implement this to generate a unique message ID
-    // Replace {{name}} placeholder with the actual user name
-        // Check if the user is subscribed before sending the email
-   
-    //const personalizedEmailContent = dynamicEmailContent
-    //const personalizedEmailContent = dynamicEmailContent.replace('{{email}}', recipientEmail);
- // Replace {{name}} placeholder with the actual user name
- //console.log('Sending email with dynamic subject:', subject);
-//console.log("attachments",attachments);
- const trackingPixelURL = `https://bulk-email-final2.onrender.com/track-open?email=${encodeURIComponent(recipientEmail)}`;
- const personalizedEmailContent = dynamicEmailContent.replace('{{name}}', recipientName);
+    const trackingPixelURL = `https://bulk-email-final2.onrender.com/track-open?email=${encodeURIComponent(recipientEmail)}`;
+    const personalizedEmailContent = dynamicEmailContent.replace('{{name}}', recipientName);
     const emailContentWithPixel = `${personalizedEmailContent}
-<img src="${trackingPixelURL}" alt="Tracking Pixel" width="1" height="1" style="display: none;" />
+      <img src="${trackingPixelURL}" alt="Tracking Pixel" width="1" height="1" style="display: none;" />`;
 
     const sendSmtpEmail = {
-      sender: {  email: "lavanya.varshney2104@gmail.com", name: senderName },
-      to: [{  email: recipientEmail }],
+      sender: { email: "lavanya.varshney2104@gmail.com", name: senderName },
+      to: [{ email: recipientEmail }],
       subject: "hello",
-      htmlContent:emailContentWithPixel,
+      htmlContent: emailContentWithPixel,
       headers: {
         'X-Tracking-Open': 'true', // Enable open tracking
         'X-Tracking-Click': 'true' // Enable click tracking (if needed)
       },
- 
     };
     const emailResponse = await apiInstance.sendTransacEmail(sendSmtpEmail);
     console.log('Email sent:', emailResponse);
-
-    // After sending the email, notify the webhook with the email analytics
-  // const messageId = emailResponse.messageId; // Assuming this is the message ID returned by Brevo API
-    /*const webhookData = {
-      event: 'clicked', // You can track other events like 'opened', 'delivered', etc.
-      email: recipientEmail,
-     'message-id': messageId,
-    };
-
-    // Send the email analytics data to your webhook
-    await axios.post('http://localhost:3000/webhook', webhookData);
-    console.log(Webhook notified for email ${recipientEmail} with Message ID ${messageId});*/
-
   } catch (error) {
     console.error('Error sending email ', error);
   }
 };
+
 app.post('/send-manual-emails', async (req, res) => {
   const token = req.headers['authorization'];  // Get the token from the headers
   console.log(token);
   if (!token) {
     return res.status(400).json({ message: 'No token provided' });
   }
-// Remove "Bearer " prefix if present
-const tokenWithoutBearer = token.startsWith('Bearer ') ? token.split(' ')[1] : token;
- // console.log(tokenWithoutBearer);
+  // Remove "Bearer " prefix if present
+  const tokenWithoutBearer = token.startsWith('Bearer ') ? token.split(' ')[1] : token;
   let decoded;
   try {
     decoded = verifyToken(tokenWithoutBearer); 
-    console.log(decoded);// Verify the token to get user info
+    console.log(decoded); // Verify the token to get user info
   } catch (error) {
     return res.status(401).json({ message: 'Invalid or expired token' });
   }
-  const { emailList, scheduleEmail, scheduleTime} = req.body; // Add scheduling options
-//console.log('Request Body:', req.body);
-
+  const { emailList, scheduleEmail, scheduleTime } = req.body; // Add scheduling options
   console.log("emailList", emailList);
- // console.log("subject",subject);
   const emailContent = req.body.emailContent; // Access the email content
   console.log('Email content received:', emailContent);
 
   dynamicEmailContent = emailContent;
-/*  if (!subject) {
-    return res.status(400).json({ message: 'Email subject is required.' });
-  } // Set the email content
-  console.log("subject",subject);*/
+
   if (!Array.isArray(emailList) || emailList.length === 0) {
     return res.status(400).json({ message: 'Invalid email list provided.' });
   }
@@ -530,49 +454,41 @@ const tokenWithoutBearer = token.startsWith('Bearer ') ? token.split(' ')[1] : t
   if (validEmails.length === 0) {
     return res.status(400).json({ message: 'No valid emails provided.', invalidEmails });
   }
-    // Retrieve the user instance from the database
+  
+  // Retrieve the user instance from the database
   const user = await User.findOne({ email: decoded.email });
   if (!user) {
     return res.status(404).json({ message: 'User  not found' });
   }
-//console.log(User 's emailsSent before sending: ${user.emailsSent});
-const FREE_EMAIL_LIMIT = 10;
-const BASIC_EMAIL_LIMIT = 12;
-const PREMIUM_EMAIL_LIMIT = 1000;
-console.log("User's emailsSent before sending: " + user.emailsSent);
+  console.log("User 's emailsSent before sending: " + user.emailsSent);
 
+  const FREE_EMAIL_LIMIT = 10;
+  const BASIC_EMAIL_LIMIT = 12;
+  const PREMIUM_EMAIL_LIMIT = 1000;
 
-// Check if the user has exceeded their plan's email limit
-if (user.planStatus === "free" && user.emailsSent >= FREE_EMAIL_LIMIT) {
-  // Redirect free plan users to upgrade
-  const checkoutUrl = `https://myappstore.lemonsqueezy.com/buy/45f80958-7809-49ef-8a3f-5aa75851adc3`; // Free -> Premium URL
-  return res.status(402).json({
-    message: 'Email limit reached. Please upgrade to Premium.',
-    checkoutUrl
-  });
-}
+  // Check if the user has exceeded their plan's email limit
+  if (user.planStatus === "free" && user.emailsSent >= FREE_EMAIL_LIMIT) {
+    const checkoutUrl = `https://myappstore.lemonsqueezy.com/buy/45f80958-7809-49ef-8a3f-5aa75851adc3`; // Free -> Premium URL
+    return res.status(402).json({
+      message: 'Email limit reached. Please upgrade to Premium.',
+      checkoutUrl
+    });
+  }
 
-if (user.planStatus === "basic" && user.emailsSent >= BASIC_EMAIL_LIMIT) {
-  // Redirect basic plan users to upgrade to Premium
-  const checkoutUrl =` https://myappstore.lemonsqueezy.com/buy/2f666a6a-1ebb-4bdb-bfae-2e942ba9d12a`; // Basic -> Premium URL
-  return res.status(402).json({
-    message: 'You have reached the Basic plan limit (12 emails). Please upgrade to Premium.',
-    checkoutUrl
-  });
-}
+  if (user.planStatus === "basic" && user.emailsSent >= BASIC_EMAIL_LIMIT) {
+    const checkoutUrl = `https://myappstore.lemonsqueezy.com/buy/2f666a6a-1ebb-4bdb-bfae-2e942ba9d12a`; // Basic -> Premium URL
+    return res.status(402).json({
+      message: 'You have reached the Basic plan limit (12 emails). Please upgrade to Premium.',
+      checkoutUrl
+    });
+  }
 
-if (user.planStatus === "premium" && user.emailsSent >= PREMIUM_EMAIL_LIMIT) {
-  // Premium users can be blocked if they exceed their limit (optional)
-  const checkoutUrl = `https://myappstore.lemonsqueezy.com/buy/2f666a6a-1ebb-4bdb-bfae-2e942ba9d12a`; // Premium -> Reached Limit URL
-  return res.status(402).json({
-    message: 'Email limit reached. Please upgrade to a higher plan.',
-    checkoutUrl
-  });
-
-
-// At this point, email limits are not exceeded, so proceed to send email
-// You can continue processing the email sending logic here
-
+  if (user.planStatus === "premium" && user.emailsSent >= PREMIUM_EMAIL_LIMIT) {
+    const checkoutUrl = `https://myappstore.lemonsqueezy.com/buy/2f666a6a-1ebb-4bdb-bfae-2e942ba9d12a`; // Premium -> Reached Limit URL
+    return res.status(402).json({
+      message: 'Email limit reached. Please upgrade to a higher plan.',
+      checkoutUrl
+    });
   }
 
   try {
@@ -580,36 +496,30 @@ if (user.planStatus === "premium" && user.emailsSent >= PREMIUM_EMAIL_LIMIT) {
     const emailPromises = validEmails.map(async ({ name, email }) => {
       // Check if user already exists in the database
       if (email !== "lavanya.varshney2104@gmail.com") {
-      const existingUser = await User.findOne({ email: email });
-         if (!existingUser) {
-        // Add user to the database if they don't already exist
-        const newUser = new User({
-          name: name,
-          email: email,
-          subscribed: true, // Assuming the user is subscribed by default
-        });
-       
-        await newUser.save();
-        console.log(`User added to database: ${name}, ${email}`);
+        const existingUser  = await User.findOne({ email: email });
+        if (!existingUser ) {
+          // Add user to the database if they don't already exist
+          const newUser  = new User({
+            name: name,
+            email: email,
+            subscribed: true, // Assuming the user is subscribed by default
+          });
+          await newUser .save();
+          console.log(`User  added to database: ${name}, ${email}`);
+        } else {
+          // Log to the console instead of alert
+          throw new Error(`User  already exists: ${name}, ${email}`);
+        }
       }
-      
-      else {
-        // Log to the console instead of alert
-        throw new Error(`User already exists: ${name}, ${email}`);
-  
-       
-      }
-
-    }
       if (scheduleEmail && scheduleTime) {
         // If scheduling is enabled, calculate delay and schedule the email
         const delay = parseScheduleTime(scheduleTime);
         if (delay !== null) {
           setTimeout(async () => {
-            await sendEmailAndNotifyWebhook(decoded.name,email,name);
+            await sendEmailAndNotifyWebhook(decoded.name, email, name);
             user.emailsSent += 1; 
             await user.save(); // Save the updated user instance
-           console.log("emailSent count",user.emailsSent);
+            console.log("emailSent count", user.emailsSent);
             console.log(`Scheduled email sent to ${email} after ${scheduleTime}`);
           }, delay);
         } else {
@@ -617,10 +527,10 @@ if (user.planStatus === "premium" && user.emailsSent >= PREMIUM_EMAIL_LIMIT) {
         }
       } else {
         // Send email immediately if no scheduling is set
-        await sendEmailAndNotifyWebhook(decoded.name,email,name);
+        await sendEmailAndNotifyWebhook(decoded.name, email, name);
         user.emailsSent += 1; 
         await user.save(); // Save the updated user instance
-        console.log("emailSent count",user.emailsSent);
+        console.log("emailSent count", user.emailsSent);
       }
     });
 
@@ -645,15 +555,15 @@ const checkEmailContent = (req, res, next) => {
   }
   next();
 };
+
 // Route to upload CSV file and create a campaign
 app.post('/upload-csv', upload.single('csvFile'), async (req, res) => {
-    if (!req.file) {
-      return res.status(400).send('No file uploaded.');
-    }
-  
-// Remove "Bearer " prefix if present
-console.log(token);
-const tokenWithoutBearer = token.startsWith('Bearer ') ? token.split(' ')[1] : token;
+  if (!req.file) {
+    return res.status(400).send('No file uploaded.');
+  }
+
+  const token = req.headers['authorization'];  // Get the token from the headers
+  const tokenWithoutBearer = token.startsWith('Bearer ') ? token.split(' ')[1] : token;
   let decoded;
   try {
     decoded = verifyToken(tokenWithoutBearer); // Verify the token to get user info
@@ -666,16 +576,11 @@ const tokenWithoutBearer = token.startsWith('Bearer ') ? token.split(' ')[1] : t
 
   dynamicEmailContent = emailContent; // Set the email content
   console.log('File received:', req.file);
- // const filePath = req.files.csvFile[0].path; // Get the path of the uploaded CSV file
   const validUsers = [];
   const invalidUsers = [];
- // const csvFile = req.files['csvFile'][0];
-  //const attachments = req.files['attachments'];
- // console.log("csvFile",csvFile)
-  //console.log("attachments",attachments)
-  // Parse the CSV file
   const rows = [];
   const filePath = req.file.path; 
+
   fs.createReadStream(filePath)
     .pipe(csvParser({
       separator: ',',  // Specify the delimiter (comma)
@@ -703,31 +608,31 @@ const tokenWithoutBearer = token.startsWith('Bearer ') ? token.split(' ')[1] : t
         try {
           // Check for duplicate email in MongoDB
           if (cleanedEmail !== "lavanya.varshney2104@gmail.com") {
-          const existingUser = await User.findOne({ email: cleanedEmail });
-          if (existingUser) {
-            console.log(`Duplicate email found: ${cleanedEmail}`);
-            continue; // Skip if the email already exists
+            const existingUser  = await User.findOne({ email: cleanedEmail });
+            if (existingUser ) {
+              console.log(`Duplicate email found: ${cleanedEmail}`);
+              continue; // Skip if the email already exists
+            }
+          
+            // If no duplicate, add user to the valid array
+            validUsers.push({ name: cleanedName, email: cleanedEmail });
           }
-        
-          // If no duplicate, add user to the valid array
-          validUsers.push({ name: cleanedName, email: cleanedEmail });
-        }
-        // Schedule the email if scheduling parameters are provided
-        if (req.body.scheduleEmail && req.body.scheduleTime) {
-          const delay = parseScheduleTime(req.body.scheduleTime);
-          if (delay !== null) {
-            setTimeout(async () => {
-              await sendEmailAndNotifyWebhook(decoded.name, cleanedEmail,cleanedName);
-              console.log(`Scheduled email sent to ${cleanedEmail} after ${req.body.scheduleTime}`);
-            }, delay);
+          // Schedule the email if scheduling parameters are provided
+          if (req.body.scheduleEmail && req.body.scheduleTime) {
+            const delay = parseScheduleTime(req.body.scheduleTime);
+            if (delay !== null) {
+              setTimeout(async () => {
+                await sendEmailAndNotifyWebhook(decoded.name, cleanedEmail, cleanedName);
+                console.log(`Scheduled email sent to ${cleanedEmail} after ${req.body.scheduleTime}`);
+              }, delay);
+            } else {
+              console.log(`Invalid schedule time for ${cleanedEmail}. Email not scheduled.`);
+            }
           } else {
-            console.log(`Invalid schedule time for ${cleanedEmail}. Email not scheduled.`);
+            // Send email immediately if no schedule is set
+            await sendEmailAndNotifyWebhook(decoded.name, cleanedEmail, cleanedName);
           }
-        } else {
-          // Send email immediately if no schedule is set
-          await sendEmailAndNotifyWebhook(decoded.name, cleanedEmail,cleanedName);
-        }
-        
+          
         } catch (error) {
           console.error('Error processing user:', error);
         }
@@ -772,7 +677,7 @@ app.post('/api/webhook', async (req, res) => {
       console.log(productName);
       const user = await User.findOne({ email: customerEmail });
       if (!user) {
-        return res.status(404).json({ message: "User not found." });
+        return res.status(404).json({ message: "User  not found." });
       }
 
       // Determine plan based on product_name
@@ -805,8 +710,8 @@ app.post('/api/webhook', async (req, res) => {
 
       await user.save();
 
-      console.log(`User ${user.email} upgraded to ${user.planStatus} plan. New limit: ${user.emailLimit}`);
-      return res.status(200).json({ message: `User upgraded to ${user.planStatus} successfully` });
+      console.log(`User  ${user.email} upgraded to ${user.planStatus} plan. New limit: ${user.emailLimit}`);
+      return res.status(200).json({ message: `User  upgraded to ${user.planStatus} successfully` });
     }
 
     res.status(400).json({ message: "Invalid event type" });
@@ -815,8 +720,6 @@ app.post('/api/webhook', async (req, res) => {
     res.status(500).json({ message: "Internal Server Error" });
   }
 });
-
-
 
 // Start the server
 app.listen(PORT, () => {
