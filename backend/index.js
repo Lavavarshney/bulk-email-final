@@ -539,8 +539,8 @@ const tokenWithoutBearer = token.startsWith('Bearer ') ? token.split(' ')[1] : t
 const FREE_EMAIL_LIMIT = 10;
 const BASIC_EMAIL_LIMIT = 12;
 const PREMIUM_EMAIL_LIMIT = 1000;
+console.log("User's emailsSent before sending: " + user.emailsSent);
 
-console.log(`User's emailsSent before sending: ${user.emailsSent}`);
 
 // Check if the user has exceeded their plan's email limit
 if (user.planStatus === "free" && user.emailsSent >= FREE_EMAIL_LIMIT) {
