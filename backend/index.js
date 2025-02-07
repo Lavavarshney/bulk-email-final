@@ -338,7 +338,7 @@ app.post('/email-opens', async (req, res) => {
     if (!user) {
       return res.status(404).json({ message: 'User  not found' });
     }
-
+console.log("postive response of email opened", totalEmailsOpened);
     res.status(200).json({
       email,
       totalEmailsOpened: user.emailsOpened,
