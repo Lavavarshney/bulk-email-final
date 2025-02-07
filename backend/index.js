@@ -325,8 +325,8 @@ app.get('/track-open', async (req, res) => {
   res.send(Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/wcAAgAB/ep0ZoIAAAAASUVORK5CYII=", "base64"));
 });
 
-app.get('/email-opens', async (req, res) => {
-  const { email } = req.query;
+app.post('/email-opens', async (req, res) => {
+  const { email } = req.body;
 
   if (!email) {
     return res.status(400).json({ message: 'Email is required' });
