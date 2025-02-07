@@ -312,6 +312,7 @@ app.get('/track-open', async (req, res) => {
      // totalEmailsOpened = user.emailsOpened;
 
       await user.save();
+      console.log(user.emailsOpened);
       console.log(`📩 Email opened by: ${email}, Total Opens: ${user.emailsOpened}`);
 
     } catch (error) {
