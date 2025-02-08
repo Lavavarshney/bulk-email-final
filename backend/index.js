@@ -357,6 +357,7 @@ app.get('/track-click', async (req, res) => {
     if (!email || !url) {
       return res.status(400).send('Missing email or URL');
     }
+    console.log("email",req.query.email);
 const user = await User.findOne({ email: req.query.email });
 
     if (!user) {
@@ -372,6 +373,7 @@ const user = await User.findOne({ email: req.query.email });
     );
   
 console.log("postive response of email clicked", user.emailsClicked);
+    console.log(url);
     // Redirect to the actual link
     res.redirect(url);
   } catch (error) {
