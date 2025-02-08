@@ -299,43 +299,9 @@ console.log({
     emailsSent: totalDelivered 
   });
 });
-
-app.get('/track-open', async (req, res) => {
-    console.log('📩 Tracking pixel hit:', req.query);
-
-    const { email } = req.query;
-    if (!email) {
-        console.log('⚠️ No email found in query params');
-        return res.status(400).json({ message: 'Email is required' });
-    }
-
-    try {
-        const user = await User.findOne({ email });
-        if (!user) {
-            console.log('❌ User not found in DB:', email);
-            return res.status(404).json({ message: 'User not found' });
-        }
-
-        user.emailsOpened += 1;
-        user.lastEmailOpenedAt = new Date();
-        await user.save();
-
-        console.log(`✅ Email opened by: ${email}, Total Opens: ${user.emailsOpened}`);
-    } catch (error) {
-        console.error('❌ Error updating user:', error);
-        return res.status(500).json({ message: 'Error tracking email open' });
-    }
-
-   
-    // Send a simple response
-    res.status(200).send('OK');
-});
-
-
-
+// Consolidated email opens tracking endpoint
 app.post('/email-opens', async (req, res) => {
-  const { email } = req.body;
-let totalEmailsOpened = 0;
+  const { email } = req.body; // Expecting email in the body
   if (!email) {
     return res.status(400).json({ message: 'Email is required' });
   }
@@ -346,15 +312,20 @@ let totalEmailsOpened = 0;
     if (!user) {
       return res.status(404).json({ message: 'User  not found' });
     }
-console.log("postive response of email opened", user.emailsOpened);
+
+    user.emailsOpened += 1;
+    user.lastEmailOpenedAt = new Date();
+    await user.save();
+
+    console.log(`✅ Email opened by: ${email}, Total Opens: ${user.emailsOpened}`);
     res.status(200).json({
       email,
       totalEmailsOpened: user.emailsOpened,
       lastOpenedAt: user.lastEmailOpenedAt
     });
   } catch (error) {
-    console.error('Error fetching email open count:', error);
-    res.status(500).json({ message: 'Error fetching email open count' });
+    console.error('Error updating user:', error);
+    res.status(500).json({ message: 'Error tracking email open' });
   }
 });
 app.get('/track-click', async (req, res) => {
@@ -430,7 +401,7 @@ app.get('/unsubscribe', async (req, res) => {
 const sendEmailAndNotifyWebhook = async (senderName, recipientEmail, recipientName) => {
   try {
      console.log("Sending email to:", recipientEmail); 
-    const trackingOpenURL = `http://bulk-email-final2.onrender.com/track-open?email=${encodeURIComponent(recipientEmail)}`;
+    const trackingOpenURL = `http://bulk-email-final2.onrender.com/email-opens`;
      const trackingClickURL = `http://bulk-email-final2.onrender.com/track-click?email=${encodeURIComponent(recipientEmail)}&url=${encodeURIComponent("https://www.example.com")}`
     const personalizedEmailContent = dynamicEmailContent.replace('{{name}}', recipientName);
     const emailContentWithPixel = `${personalizedEmailContent}
