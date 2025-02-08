@@ -301,8 +301,10 @@ console.log({
 });
 app.post('/email-opens', async (req, res) => {
   const { email } = req.body; // Expecting email in the body
-  if (!email) {
-    return res.status(400).json({ message: 'Email is required' });
+  const { token } = req.query; // Get the token from the query parameters
+
+  if (!email || !token) {
+    return res.status(400).json({ message: 'Email and token are required' });
   }
 
   try {
@@ -312,19 +314,24 @@ app.post('/email-opens', async (req, res) => {
       return res.status(404).json({ message: 'User  not found' });
     }
 
-    const now = new Date();
-    const timeSinceLastOpen = (now - user.lastEmailOpenedAt) / (200 * 60); // Time in minutes
-
-    // Check if the last open was more than 2 minutes ago
-    if (timeSinceLastOpen > 2) {
-      user.emailsOpened += 1;
-      user.lastEmailOpenedAt = now;
-      await user.save();
-      console.log(`✅ Email opened by: ${email}, Total Opens: ${user.emailsOpened}`);
-    } else {
-      console.log(`⚠️ Email opened by: ${email}, but counted as duplicate within 10 minutes.`);
+    // Check if the token has already been used
+    if (user.trackingTokens.includes(token)) {
+      console.log(`⚠️ Token already used for email: ${email}`);
+      return res.status(200).json({
+        email,
+        totalEmailsOpened: user.emailsOpened,
+        lastOpenedAt: user.lastEmailOpenedAt,
+        message: 'Token already used'
+      });
     }
 
+    // Increment the open count and mark the token as used
+    user.emailsOpened += 1;
+    user.lastEmailOpenedAt = new Date();
+    user.trackingTokens.push(token); // Add the token to the used tokens
+    await user.save();
+
+    console.log(`✅ Email opened by: ${email}, Total Opens: ${user.emailsOpened}`);
     res.status(200).json({
       email,
       totalEmailsOpened: user.emailsOpened,
@@ -403,12 +410,18 @@ app.get('/unsubscribe', async (req, res) => {
     res.status(500).json({ message: 'Error processing the unsubscribe request.' });
   }
 });
-
+// Helper function to generate a unique token
+function generateUniqueToken() {
+    const timestamp = Date.now().toString(36); // Convert current timestamp to base-36
+    const randomNum = Math.random().toString(36).substring(2, 10); // Generate a random string
+    return `${timestamp}-${randomNum}`; // Combine timestamp and random string
+}
 // Helper function to send email
 const sendEmailAndNotifyWebhook = async (senderName, recipientEmail, recipientName) => {
   try {
      console.log("Sending email to:", recipientEmail); 
-    const trackingOpenURL = `http://bulk-email-final2.onrender.com/email-opens`;
+     const uniqueToken = generateUniqueToken(); // Generate a unique token
+       const trackingOpenURL = `http://bulk-email-final2.onrender.com/email-opens?token=${uniqueToken}`; // Include token in the URL
      const trackingClickURL = `http://bulk-email-final2.onrender.com/track-click?email=${encodeURIComponent(recipientEmail)}&url=${encodeURIComponent("https://www.example.com")}`
     const personalizedEmailContent = dynamicEmailContent.replace('{{name}}', recipientName);
     const emailContentWithPixel = `${personalizedEmailContent}
