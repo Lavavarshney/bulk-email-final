@@ -301,33 +301,37 @@ console.log({
 });
 
 app.get('/track-open', async (req, res) => {
-  const { email } = req.query;
-  console.log(req.query.email);
-  if (email) {
-    try {
-      const user = await User.findOne({ email });
+    console.log('📩 Tracking pixel hit:', req.query);
 
-      if (!user) {
-        return res.status(404).json({ message: 'User  not found' });
-      }
-
-      user.emailsOpened += 1;
-      user.lastEmailOpenedAt = new Date();
-     // totalEmailsOpened = user.emailsOpened;
-
-      await user.save();
-      console.log(user.emailsOpened);
-      console.log(`📩 Email opened by: ${email}, Total Opens: ${user.emailsOpened}`);
-
-    } catch (error) {
-      console.error('Error updating user:', error);
-      return res.status(500).json({ message: 'Error tracking email open' });
+    const { email } = req.query;
+    if (!email) {
+        console.log('⚠️ No email found in query params');
+        return res.status(400).json({ message: 'Email is required' });
     }
-  }
-  // Optionally, send a 1x1 transparent pixel image as before
-  res.setHeader("Content-Type", "image/png");
-  res.send(Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/wcAAgAB/ep0ZoIAAAAASUVORK5CYII=", "base64"));
+
+    try {
+        const user = await User.findOne({ email });
+        if (!user) {
+            console.log('❌ User not found in DB:', email);
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        user.emailsOpened += 1;
+        user.lastEmailOpenedAt = new Date();
+        await user.save();
+
+        console.log(`✅ Email opened by: ${email}, Total Opens: ${user.emailsOpened}`);
+    } catch (error) {
+        console.error('❌ Error updating user:', error);
+        return res.status(500).json({ message: 'Error tracking email open' });
+    }
+
+    // Send 1x1 transparent image
+    res.setHeader("Content-Type", "image/png");
+    res.send(Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/wcAAgAB/ep0ZoIAAAAASUVORK5CYII=", "base64"));
 });
+
+
 
 app.post('/email-opens', async (req, res) => {
   const { email } = req.body;
