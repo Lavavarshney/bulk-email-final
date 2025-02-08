@@ -299,7 +299,6 @@ console.log({
     emailsSent: totalDelivered 
   });
 });
-// Consolidated email opens tracking endpoint
 app.post('/email-opens', async (req, res) => {
   const { email } = req.body; // Expecting email in the body
   if (!email) {
@@ -313,11 +312,19 @@ app.post('/email-opens', async (req, res) => {
       return res.status(404).json({ message: 'User  not found' });
     }
 
-    user.emailsOpened += 1;
-    user.lastEmailOpenedAt = new Date();
-    await user.save();
+    const now = new Date();
+    const timeSinceLastOpen = (now - user.lastEmailOpenedAt) / (1000 * 60); // Time in minutes
 
-    console.log(`✅ Email opened by: ${email}, Total Opens: ${user.emailsOpened}`);
+    // Check if the last open was more than 10 minutes ago
+    if (timeSinceLastOpen > 10) {
+      user.emailsOpened += 1;
+      user.lastEmailOpenedAt = now;
+      await user.save();
+      console.log(`✅ Email opened by: ${email}, Total Opens: ${user.emailsOpened}`);
+    } else {
+      console.log(`⚠️ Email opened by: ${email}, but counted as duplicate within 10 minutes.`);
+    }
+
     res.status(200).json({
       email,
       totalEmailsOpened: user.emailsOpened,
