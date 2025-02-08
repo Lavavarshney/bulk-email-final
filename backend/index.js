@@ -350,16 +350,30 @@ console.log("postive response of email opened", user.emailsOpened);
   }
 });
 
-app.get('/click-rate', async (req, res) => {
-  const totalUsers = await User.countDocuments({});
-  const rates = Object.entries(emailTracking).map(([email, { delivered, clicked }]) => {
-    const effectiveDelivered = delivered || totalUsers; // Fallback to total user count if delivered is 0
-    const clickRate = effectiveDelivered > 0 ? ((clicked / effectiveDelivered) * 100).toFixed(2) : 0;
-    return { email, delivered: effectiveDelivered, clicked };
-  });
+app.get('/track-click', async (req, res) => {
+  try {
+    const { email, url } = req.query;
+    if (!email || !url) {
+      return res.status(400).send('Missing email or URL');
+    }
 
-  res.status(200).json(rates);
+    // Update user's click count and last clicked time
+    await User.updateOne(
+      { email },
+      {
+        $inc: { emailsClicked: 1 }, 
+        $set: { lastEmailClickedAt: new Date() }
+      }
+    );
+
+    // Redirect to the actual link
+    res.redirect(url);
+  } catch (error) {
+    console.error('Error tracking click:', error);
+    res.status(500).send('Internal Server Error');
+  }
 });
+
 
 // Modified Unsubscribe endpoint to accept email as query parameter
 app.get('/unsubscribe', async (req, res) => {
@@ -392,9 +406,11 @@ app.get('/unsubscribe', async (req, res) => {
 const sendEmailAndNotifyWebhook = async (senderName, recipientEmail, recipientName) => {
   try {
     const trackingPixelURL = `http://bulk-email-final2.onrender.com/track-open?email=${encodeURIComponent(recipientEmail)}`;
+     const trackingClickURL = `http://bulk-email-final2.onrender.com/track-click?email=${encodeURIComponent(recipientEmail)}&url=${encodeURIComponent("https://www.google.com")}`
     const personalizedEmailContent = dynamicEmailContent.replace('{{name}}', recipientName);
     const emailContentWithPixel = `${personalizedEmailContent}
-      <img src="${trackingPixelURL}" alt="Tracking Pixel" width="1" height="1" style="display: none;" />`;
+      <img src="${trackingPixelURL}" alt="Tracking Pixel" width="1" height="1" style="display: none;" />;
+   <p><a href="${trackingClickURL}" target="_blank">Click here</a> to visit our website.</p>`;
 
     const sendSmtpEmail = {
       sender: { email: "lavanya.varshney2104@gmail.com", name: senderName },
