@@ -17,7 +17,9 @@ const userSchema = new mongoose.Schema({
   emailLimit: {type: Number, default: 10},
   emailsOpened: { type: Number, default: 0 }, // Track the number of emails opened
  lastEmailSentAt: { type: Date, default: null }, // Track last email sent timestamp
-lastEmailOpenedAt: { type: Date, default: null } // Track the last time an email was opened
+lastEmailOpenedAt: { type: Date, default: null }, // Track the last time an email was opened
+emailsClicked: { type: Number, default: 0 }, // Track number of emails clicked ✅ (New)
+lastEmailClickedAt: { type: Date, default: null }
 });
 
 const User = mongoose.model('User', userSchema);
