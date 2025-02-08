@@ -365,7 +365,7 @@ app.get('/track-click', async (req, res) => {
         $set: { lastEmailClickedAt: new Date() }
       }
     );
-
+console.log("postive response of email clicked", user.emailsClicked);
     // Redirect to the actual link
     res.redirect(url);
   } catch (error) {
