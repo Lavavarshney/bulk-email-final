@@ -435,7 +435,7 @@ const sendEmailAndNotifyWebhook = async (senderName, recipientEmail, recipientNa
     const personalizedEmailContent = dynamicEmailContent.replace('{{name}}', recipientName);
     const emailContentWithPixel = `${personalizedEmailContent}
    <img src="${trackingPixelURL}" alt="Tracking Pixel" width="100" height="100" alt="Open Tracking Image"/>;
-   <p><a href="${trackingClickURL}" target="_blank">Click here</a> to visit our website.</p>`;
+   <p><a href="${trackingClickURL}" target="_blank">Click here</a> to visit our website.</p><img src="https://images.pexels.com/photos/30538754/pexels-photo-30538754/free-photo-of-elegant-white-dress-in-snowy-winter-setting.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1"width="100" height="100"/>`;
 
     const sendSmtpEmail = {
       sender: { email: "lavanya.varshney2104@gmail.com", name: senderName },
