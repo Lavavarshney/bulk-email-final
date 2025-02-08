@@ -448,7 +448,7 @@ const sendEmailAndNotifyWebhook = async (senderName, recipientEmail, recipientNa
       },
     };
     const emailResponse = await apiInstance.sendTransacEmail(sendSmtpEmail);
-    console.log("Tracking Pixel URL:", trackingPixelURL);
+    console.log("Tracking Pixel URL:", trackingOpenURL);
     console.log('Email sent:', emailResponse);
   } catch (error) {
     console.error('Error sending email ', error);
