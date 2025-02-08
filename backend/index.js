@@ -289,6 +289,10 @@ app.post('/api/track-delivery', async (req, res) => {
   } else {
     return res.status(400).json({ message: 'Email is required' });
   }
+console.log({ 
+  message: 'Delivery tracked successfully', 
+  emailsSent: totalDelivered 
+});
 
   return res.status(200).json({ 
     message: 'Delivery tracked successfully', 
