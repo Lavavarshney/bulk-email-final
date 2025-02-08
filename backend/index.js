@@ -434,7 +434,7 @@ const sendEmailAndNotifyWebhook = async (senderName, recipientEmail, recipientNa
      const trackingClickURL = `http://bulk-email-final2.onrender.com/track-click?email=${encodeURIComponent(recipientEmail)}&url=${encodeURIComponent("https://www.example.com")}`
     const personalizedEmailContent = dynamicEmailContent.replace('{{name}}', recipientName);
     const emailContentWithPixel = `${personalizedEmailContent}
-      <img src="${trackingPixelURL}" alt="Tracking Pixel" width="100" height="100" alt="Open Tracking Image"/>;
+   <img src="${trackingPixelURL}" alt="Tracking Pixel" width="100" height="100" alt="Open Tracking Image"/>;
    <p><a href="${trackingClickURL}" target="_blank">Click here</a> to visit our website.</p>`;
 
     const sendSmtpEmail = {
@@ -448,6 +448,7 @@ const sendEmailAndNotifyWebhook = async (senderName, recipientEmail, recipientNa
       },
     };
     const emailResponse = await apiInstance.sendTransacEmail(sendSmtpEmail);
+    console.log("Tracking Pixel URL:", trackingPixelURL);
     console.log('Email sent:', emailResponse);
   } catch (error) {
     console.error('Error sending email ', error);
