@@ -17,7 +17,7 @@ require('dotenv').config();
 const apiKey = process.env.BREVO_API_KEY;
 const emailTracking = {}; // { email: { delivered: count, clicked: count } }
 // Allow requests from your frontend origin
-app.use(cors({ allowedHeaders: ['Content-Type', 'authorization'] }));
+app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -410,6 +410,7 @@ app.get('/unsubscribe', async (req, res) => {
 // Helper function to send email
 const sendEmailAndNotifyWebhook = async (senderName, recipientEmail, recipientName) => {
   try {
+     console.log("Sending email to:", recipientEmail); 
     const trackingPixelURL = `http://bulk-email-final2.onrender.com/track-open?email=${encodeURIComponent(recipientEmail)}`;
      const trackingClickURL = `http://bulk-email-final2.onrender.com/track-click?email=${encodeURIComponent(recipientEmail)}&url=${encodeURIComponent("https://www.google.com")}`
     const personalizedEmailContent = dynamicEmailContent.replace('{{name}}', recipientName);
