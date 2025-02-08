@@ -313,10 +313,10 @@ app.post('/email-opens', async (req, res) => {
     }
 
     const now = new Date();
-    const timeSinceLastOpen = (now - user.lastEmailOpenedAt) / (1000 * 60); // Time in minutes
+    const timeSinceLastOpen = (now - user.lastEmailOpenedAt) / (200 * 60); // Time in minutes
 
-    // Check if the last open was more than 10 minutes ago
-    if (timeSinceLastOpen > 10) {
+    // Check if the last open was more than 2 minutes ago
+    if (timeSinceLastOpen > 2) {
       user.emailsOpened += 1;
       user.lastEmailOpenedAt = now;
       await user.save();
