@@ -326,9 +326,9 @@ app.get('/track-open', async (req, res) => {
         return res.status(500).json({ message: 'Error tracking email open' });
     }
 
-    // Send 1x1 transparent image
-    res.setHeader("Content-Type", "image/png");
-    res.send(Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/wcAAgAB/ep0ZoIAAAAASUVORK5CYII=", "base64"));
+   
+    // Send a simple response
+    res.status(200).send('OK');
 });
 
 
@@ -434,8 +434,8 @@ const sendEmailAndNotifyWebhook = async (senderName, recipientEmail, recipientNa
      const trackingClickURL = `http://bulk-email-final2.onrender.com/track-click?email=${encodeURIComponent(recipientEmail)}&url=${encodeURIComponent("https://www.example.com")}`
     const personalizedEmailContent = dynamicEmailContent.replace('{{name}}', recipientName);
     const emailContentWithPixel = `${personalizedEmailContent}
-   <img src="${trackingPixelURL}" alt="Tracking Pixel" width="100" height="100" alt="Open Tracking Image"/>;
-   <p><a href="${trackingClickURL}" target="_blank">Click here</a> to visit our website.</p><img src="https://images.pexels.com/photos/30538754/pexels-photo-30538754/free-photo-of-elegant-white-dress-in-snowy-winter-setting.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1"width="100" height="100"/>`;
+    <a href="${trackingOpenURL}" style="display:none; visibility:hidden; height:0; width:0; overflow:hidden;">Invisible Tracking Link</a>
+   <p><a href="${trackingClickURL}" target="_blank">Click here</a> to visit our website.</p>`
 
     const sendSmtpEmail = {
       sender: { email: "lavanya.varshney2104@gmail.com", name: senderName },
