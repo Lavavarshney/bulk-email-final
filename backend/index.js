@@ -352,11 +352,12 @@ console.log("postive response of email opened", user.emailsOpened);
 
 app.get('/track-click', async (req, res) => {
   try {
+ 
     const { email, url } = req.query;
     if (!email || !url) {
       return res.status(400).send('Missing email or URL');
     }
-   const user = await User.findOne({ email });
+const user = await User.findOne({ email: req.query.email });
 
     if (!user) {
       return res.status(404).json({ message: 'User  not found' });
