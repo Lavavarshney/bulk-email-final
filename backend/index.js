@@ -302,7 +302,7 @@ console.log({
 
 app.get('/track-open', async (req, res) => {
   const { email } = req.query;
-  
+  console.log(req.query.email);
   if (email) {
     try {
       const user = await User.findOne({ email });
