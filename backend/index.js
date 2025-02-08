@@ -356,7 +356,11 @@ app.get('/track-click', async (req, res) => {
     if (!email || !url) {
       return res.status(400).send('Missing email or URL');
     }
+   const user = await User.findOne({ email });
 
+    if (!user) {
+      return res.status(404).json({ message: 'User  not found' });
+    }
     // Update user's click count and last clicked time
     await User.updateOne(
       { email },
@@ -365,6 +369,7 @@ app.get('/track-click', async (req, res) => {
         $set: { lastEmailClickedAt: new Date() }
       }
     );
+  
 console.log("postive response of email clicked", user.emailsClicked);
     // Redirect to the actual link
     res.redirect(url);
