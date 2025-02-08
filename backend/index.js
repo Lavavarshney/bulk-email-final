@@ -349,33 +349,41 @@ console.log("postive response of email opened", user.emailsOpened);
     res.status(500).json({ message: 'Error fetching email open count' });
   }
 });
-
 app.get('/track-click', async (req, res) => {
   try {
- 
     const { email, url } = req.query;
+    
     if (!email || !url) {
-      return res.status(400).send('Missing email or URL');
+      return res.status(400).send('Missing email or URL'); 
     }
-    console.log("email",req.query.email);
-const user = await User.findOne({ email: req.query.email });
+    
+    // Decode email and log it for verification
+    const decodedEmail = decodeURIComponent(email);
+    console.log("Decoded email:", decodedEmail);
+    
+    const user = await User.findOne({ email: decodedEmail });
 
     if (!user) {
-      return res.status(404).json({ message: 'User  not found' });
+      return res.status(404).json({ message: 'User not found' });
     }
+
     // Update user's click count and last clicked time
     await User.updateOne(
-      { email },
+      { email: decodedEmail },
       {
         $inc: { emailsClicked: 1 }, 
         $set: { lastEmailClickedAt: new Date() }
       }
     );
-  
-console.log("postive response of email clicked", user.emailsClicked);
-    console.log(url);
+
+    console.log("Positive response of email clicked", user.emailsClicked);
+
+    // Log URL before redirecting
+    console.log("Redirecting to URL:", url);
+    
     // Redirect to the actual link
     res.redirect(url);
+    
   } catch (error) {
     console.error('Error tracking click:', error);
     res.status(500).send('Internal Server Error');
