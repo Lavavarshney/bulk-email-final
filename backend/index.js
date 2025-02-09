@@ -336,6 +336,7 @@ app.get('/email-opens', async (req, res) => {
   res.writeHead(200, {
     "Content-Type": "image/png",
     "Content-Length": pixel.length,
+    "Cache-Control": "no-cache, no-store, must-revalidate", // Prevent caching
   });
 
   res.end(pixel);
