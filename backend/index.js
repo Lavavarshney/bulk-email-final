@@ -299,49 +299,48 @@ console.log({
     emailsSent: totalDelivered 
   });
 });
-app.post('/email-opens', async (req, res) => {
-  const { email } = req.body; // Expecting email in the body
-  const { token } = req.query; // Get the token from the query parameters
+app.get('/email-opens', async (req, res) => {
+  const { email, token } = req.query;
 
   if (!email || !token) {
-    return res.status(400).json({ message: 'Email and token are required' });
+    console.warn("Missing email or token in tracking request");
+  } else {
+    try {
+      const user = await User.findOne({ email });
+
+      if (user) {
+        // Check if token is already used
+        if (!user.trackingTokens.includes(token)) {
+          user.emailsOpened += 1;
+          user.lastEmailOpenedAt = new Date();
+          user.trackingTokens.push(token);
+          await user.save();
+          console.log(`✅ Email opened by: ${email}, Total Opens: ${user.emailsOpened}`);
+        } else {
+          console.log(`⚠️ Duplicate token detected for ${email}`);
+        }
+      } else {
+        console.warn("User not found for email open tracking:", email);
+      }
+    } catch (error) {
+      console.error("Error tracking email open:", error);
+    }
   }
 
-  try {
-    const user = await User.findOne({ email });
+  // Send a 1x1 transparent pixel image
+  const pixel = Buffer.from(
+    "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/wcAAwAB/akZWakAAAAASUVORK5CYII=",
+    "base64"
+  );
 
-    if (!user) {
-      return res.status(404).json({ message: 'User  not found' });
-    }
+  res.writeHead(200, {
+    "Content-Type": "image/png",
+    "Content-Length": pixel.length,
+  });
 
-    // Check if the token has already been used
-    if (user.trackingTokens.includes(token)) {
-      console.log(`⚠️ Token already used for email: ${email}`);
-      return res.status(200).json({
-        email,
-        totalEmailsOpened: user.emailsOpened,
-        lastOpenedAt: user.lastEmailOpenedAt,
-        message: 'Token already used'
-      });
-    }
-
-    // Increment the open count and mark the token as used
-    user.emailsOpened += 1;
-    user.lastEmailOpenedAt = new Date();
-    user.trackingTokens.push(token); // Add the token to the used tokens
-    await user.save();
-
-    console.log(`✅ Email opened by: ${email}, Total Opens: ${user.emailsOpened}`);
-    res.status(200).json({
-      email,
-      totalEmailsOpened: user.emailsOpened,
-      lastOpenedAt: user.lastEmailOpenedAt
-    });
-  } catch (error) {
-    console.error('Error updating user:', error);
-    res.status(500).json({ message: 'Error tracking email open' });
-  }
+  res.end(pixel);
 });
+
 app.get('/track-click', async (req, res) => {
   try {
     const { email, url } = req.query;
@@ -425,7 +424,7 @@ const sendEmailAndNotifyWebhook = async (senderName, recipientEmail, recipientNa
      const trackingClickURL = `http://bulk-email-final2.onrender.com/track-click?email=${encodeURIComponent(recipientEmail)}&url=${encodeURIComponent("https://www.example.com")}`
     const personalizedEmailContent = dynamicEmailContent.replace('{{name}}', recipientName);
     const emailContentWithPixel = `${personalizedEmailContent}
-    <a href="${trackingOpenURL}" style="display:none; visibility:hidden; height:0; width:0; overflow:hidden;">Invisible Tracking Link</a>
+   <img src="${trackingOpenURL}" width="1" height="1" style="display:block;" alt="this is tracking pixel" />
    <p><a href="${trackingClickURL}" target="_blank">Click here</a> to visit our website.</p>`
 
     const sendSmtpEmail = {
