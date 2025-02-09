@@ -301,7 +301,7 @@ console.log({
 });
 app.get('/email-opens', async (req, res) => {
   const { email, token } = req.query;
-
+ let emailsOpened = 0;
   if (!email || !token) {
     console.warn("Missing email or token in tracking request");
   } else {
@@ -319,7 +319,9 @@ app.get('/email-opens', async (req, res) => {
         } else {
           console.log(`⚠️ Duplicate token detected for ${email}`);
         }
-      } else {
+         emailsOpened = user.emailsOpened;
+      }    
+      else {
         console.warn("User not found for email open tracking:", email);
       }
     } catch (error) {
@@ -337,6 +339,7 @@ app.get('/email-opens', async (req, res) => {
     "Content-Type": "image/png",
     "Content-Length": pixel.length,
     "Cache-Control": "no-cache, no-store, must-revalidate", // Prevent caching
+    "X-Emails-Opened": emailsOpened.toString(), // Custom header to include emails opened count
   });
 
   res.end(pixel);
