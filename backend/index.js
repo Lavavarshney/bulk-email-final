@@ -16,8 +16,12 @@ require('dotenv').config();
 
 const apiKey = process.env.BREVO_API_KEY;
 const emailTracking = {}; // { email: { delivered: count, clicked: count } }
+
 // Allow requests from your frontend origin
-app.use(cors());
+const corsOptions = {
+  exposedHeaders: ['X-Emails-Opened'] // Expose your custom header
+};
+app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
