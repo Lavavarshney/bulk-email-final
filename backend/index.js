@@ -329,6 +329,8 @@ app.get('/email-opens', async (req, res) => {
     }
   }
 
+  // Log emailsOpened before sending the response
+  console.log("emailsOpened (before sending header):", emailsOpened);
   // Send a 1x1 transparent pixel image
   const pixel = Buffer.from(
     "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/wcAAwAB/akZWakAAAAASUVORK5CYII=",
