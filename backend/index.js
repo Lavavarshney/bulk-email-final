@@ -334,7 +334,7 @@ app.get('/email-opens', async (req, res) => {
     "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/wcAAwAB/akZWakAAAAASUVORK5CYII=",
     "base64"
   );
-
+console.log("emailsOpened",emailsOpened.toString());
   res.writeHead(200, {
     "Content-Type": "image/png",
     "Content-Length": pixel.length,
