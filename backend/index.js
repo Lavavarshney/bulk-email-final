@@ -339,7 +339,8 @@ console.log("emailsOpened",emailsOpened.toString());
     "Content-Type": "image/png",
     "Content-Length": pixel.length,
     "Cache-Control": "no-cache, no-store, must-revalidate", // Prevent caching
-    "X-Emails-Opened": emailsOpened.toString(), // Custom header to include emails opened count
+   "X-Emails-Opened": emailsOpened.toString(), // Custom header to include emails opened count
+    "Access-Control-Expose-Headers": "X-Emails-Opened" // Expose the custom header to the client
   });
 
   res.end(pixel);
