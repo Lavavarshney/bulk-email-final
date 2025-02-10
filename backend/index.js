@@ -344,11 +344,12 @@ console.log("emailsOpened",emailsOpened.toString());
    "Cache-Control": "no-cache, no-store, must-revalidate" // Prevent caching
   });
 
-  res.end(JSON.stringify({
-    image: `data:image/png;base64,${pixel}`,
-    emailsOpened: emailsOpened
-  }));
-
+const responseData = {
+  image: `data:image/png;base64,${pixel}`,
+  emailsOpened: emailsOpened
+};
+console.log("Response Data:", responseData); // Log the response data
+res.end(JSON.stringify(responseData));
 });
 
 app.get('/track-click', async (req, res) => {
