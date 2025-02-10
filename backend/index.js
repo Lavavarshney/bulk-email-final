@@ -431,6 +431,7 @@ const sendEmailAndNotifyWebhook = async (senderName, recipientEmail, recipientNa
   try {
      console.log("Sending email to:", recipientEmail); 
      const uniqueToken = generateUniqueToken(); // Generate a unique token
+    console.log(uniqueToken);
 const trackingOpenURL = `http://bulk-email-final2.onrender.com/email-opens?email=${encodeURIComponent(recipientEmail)}&token=${encodeURIComponent(uniqueToken)}`;
      const trackingClickURL = `http://bulk-email-final2.onrender.com/track-click?email=${encodeURIComponent(recipientEmail)}&url=${encodeURIComponent("https://www.example.com")}`
     const personalizedEmailContent = dynamicEmailContent.replace('{{name}}', recipientName);
