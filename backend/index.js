@@ -18,10 +18,8 @@ const apiKey = process.env.BREVO_API_KEY;
 const emailTracking = {}; // { email: { delivered: count, clicked: count } }
 
 // Allow requests from your frontend origin
-const corsOptions = {
-  exposedHeaders: ['X-Emails-Opened'] // Expose your custom header
-};
-app.use(cors(corsOptions));
+
+app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -342,14 +340,15 @@ app.get('/email-opens', async (req, res) => {
   );
 console.log("emailsOpened",emailsOpened.toString());
   res.writeHead(200, {
-    "Content-Type": "image/png",
-    "Content-Length": pixel.length,
-    "Cache-Control": "no-cache, no-store, must-revalidate", // Prevent caching
-   "X-Emails-Opened": emailsOpened.toString(), // Custom header to include emails opened count
-    "Access-Control-Expose-Headers": "X-Emails-Opened" // Expose the custom header to the client
+   "Content-Type": "application/json",
+   "Cache-Control": "no-cache, no-store, must-revalidate" // Prevent caching
   });
 
-  res.end(pixel);
+  res.end(JSON.stringify({
+    image: `data:image/png;base64,${pixel}`,
+    emailsOpened: emailsOpened
+  }));
+
 });
 
 app.get('/track-click', async (req, res) => {
