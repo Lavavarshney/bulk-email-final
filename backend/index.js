@@ -302,27 +302,22 @@ console.log({
   });
 });
 app.get('/email-opens', async (req, res) => {
-  const { email, token } = req.query;
+  const { email } = req.query;
  let emailsOpened = 0;
-  if (!email || !token) {
+  if (!email ) {
     console.warn("Missing email or token in tracking request");
   } else {
     try {
       const user = await User.findOne({ email });
 
       if (user) {
-        // Check if token is already used
-        if (!user.trackingTokens.includes(token)) {
           user.emailsOpened += 1;
           user.lastEmailOpenedAt = new Date();
-          user.trackingTokens.push(token);
           await user.save();
           console.log(`✅ Email opened by: ${email}, Total Opens: ${user.emailsOpened}`);
-        } else {
-          console.log(`⚠️ Duplicate token detected for ${email}`);
+          emailsOpened = user.emailsOpened;
         }
-         emailsOpened = user.emailsOpened;
-      }    
+         
       else {
         console.warn("User not found for email open tracking:", email);
       }
@@ -420,19 +415,12 @@ app.get('/unsubscribe', async (req, res) => {
     res.status(500).json({ message: 'Error processing the unsubscribe request.' });
   }
 });
-// Helper function to generate a unique token
-function generateUniqueToken() {
-    const timestamp = Date.now().toString(36); // Convert current timestamp to base-36
-    const randomNum = Math.random().toString(36).substring(2, 10); // Generate a random string
-    return `${timestamp}-${randomNum}`; // Combine timestamp and random string
-}
+
 // Helper function to send email
 const sendEmailAndNotifyWebhook = async (senderName, recipientEmail, recipientName) => {
   try {
      console.log("Sending email to:", recipientEmail); 
-     const uniqueToken = generateUniqueToken(); // Generate a unique token
-    console.log(uniqueToken);
-const trackingOpenURL = `http://bulk-email-final2.onrender.com/email-opens?email=${encodeURIComponent(recipientEmail)}&token=${encodeURIComponent(uniqueToken)}`;
+const trackingOpenURL = `http://bulk-email-final2.onrender.com/email-opens?email=${encodeURIComponent(recipientEmail)}}`;
      const trackingClickURL = `http://bulk-email-final2.onrender.com/track-click?email=${encodeURIComponent(recipientEmail)}&url=${encodeURIComponent("https://www.example.com")}`
     const personalizedEmailContent = dynamicEmailContent.replace('{{name}}', recipientName);
     const emailContentWithPixel = `${personalizedEmailContent}
