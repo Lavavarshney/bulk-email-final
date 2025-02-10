@@ -420,7 +420,7 @@ app.get('/unsubscribe', async (req, res) => {
 const sendEmailAndNotifyWebhook = async (senderName, recipientEmail, recipientName) => {
   try {
      console.log("Sending email to:", recipientEmail); 
-const trackingOpenURL = `http://bulk-email-final2.onrender.com/email-opens?email=${encodeURIComponent(recipientEmail)}}`;
+const trackingOpenURL = `http://bulk-email-final2.onrender.com/email-opens?email=${encodeURIComponent(recipientEmail)}`;
      const trackingClickURL = `http://bulk-email-final2.onrender.com/track-click?email=${encodeURIComponent(recipientEmail)}&url=${encodeURIComponent("https://www.example.com")}`
     const personalizedEmailContent = dynamicEmailContent.replace('{{name}}', recipientName);
     const emailContentWithPixel = `${personalizedEmailContent}
