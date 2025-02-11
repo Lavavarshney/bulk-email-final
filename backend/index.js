@@ -327,6 +327,10 @@ app.get('/open-rate',async (req, res) => {
     const openRate = effectiveDelivered > 0 ? ((opened / effectiveDelivered) * 100).toFixed(2) : 0;
     return { email, delivered: effectiveDelivered , opened, openRate: `${openRate}%` };
   });
+
+  res.status(200).json(rates);
+});
+
 app.get('/click-rate', async (req, res) => {
   const totalUsers = await User.countDocuments({});
   const rates = Object.entries(emailTracking).map(([email, { delivered, clicked }]) => {
@@ -335,6 +339,8 @@ app.get('/click-rate', async (req, res) => {
     return { email, delivered: effectiveDelivered, clicked, clickRate: `${clickRate}%` };
   });
 
+  res.status(200).json(rates); // Ensure you return the response
+});
 
 app.post('/send-manual-emails', async (req, res) => {
   const token = req.headers['authorization'];  // Get the token from the headers
