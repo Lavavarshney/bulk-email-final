@@ -294,32 +294,6 @@ app.post('/webhook', async(req, res) => {
 });
 
 
-// Modified Unsubscribe endpoint to accept email as query parameter
-app.get('/unsubscribe', async (req, res) => {
-  const { email } = req.query;
-
-  console.log('Received email:', email); // Log the email received
-  if (!isValidEmail(email)) {
-    return res.status(400).json({ message: 'Invalid email address' });
-  }
-
-  try {
-    const user = await User.findOneAndUpdate(
-      { email },
-      { subscribed: false },
-      { new: true }
-    );
-
-    if (!user) {
-      return res.status(404).json({ message: 'User  not found' });
-    }
-
-    res.status(200).json({ message: 'You have successfully unsubscribed from our emails.' });
-  } catch (error) {
-    console.error('Error unsubscribing user:', error);
-    res.status(500).json({ message: 'Error processing the unsubscribe request.' });
-  }
-});
 
 // Helper function to send email
 const sendEmailAndNotifyWebhook = async (senderName, recipientEmail, recipientName) => {
@@ -361,8 +335,6 @@ app.get('/click-rate', async (req, res) => {
     return { email, delivered: effectiveDelivered, clicked, clickRate: `${clickRate}%` };
   });
 
-  res.status(200).json(rates);
-});
 
 app.post('/send-manual-emails', async (req, res) => {
   const token = req.headers['authorization'];  // Get the token from the headers
@@ -676,3 +648,4 @@ app.post('/api/webhook', async (req, res) => {
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
 });
+ 
