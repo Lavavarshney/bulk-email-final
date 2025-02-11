@@ -18,7 +18,7 @@ const apiKey = process.env.BREVO_API_KEY;
 const emailTracking = {}; // { email: { delivered: count, clicked: count } }
 
 // Allow requests from your frontend origin
-
+const emailTracking = {}; 
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -266,126 +266,32 @@ app.post('/send-email-content', async (req, res) => {
   }
 });
 
-app.post('/api/track-delivery', async (req, res) => {
-  const { email } = req.body;
-
-  // Initialize totalDelivered variable
-  let totalDelivered = 0;
-
-  if (email) {
-    const user = await User.findOne({ email });
-    if (!user) {
-      return res.status(404).json({ message: 'User  not found' });
-    }
-    // Check if the last email was sent recently (e.g., in the last 5 minutes)
-    const now = new Date();
-    const lastSentTime = user.lastEmailSentAt;
-    if (!lastSentTime || now - lastSentTime > 2 * 60 * 1000) { // 5 minutes threshold
-      user.emailsSent += 1;
-      user.lastEmailSentAt = now; // Update last sent timestamp
-      await user.save();
-    }
-    totalDelivered = user.emailsSent; 
-
-    console.log(`Email delivered: ${email}, Total Delivered: ${totalDelivered}`);
-  } else {
-    return res.status(400).json({ message: 'Email is required' });
+const processedEvents = new Set();
+app.post('/webhook', async(req, res) => {
+  const eventData = req.body;
+  console.log(eventData);
+  const { event, email, 'message-id': messageId } = eventData;
+  if (!emailTracking[email]) {
+    emailTracking[email] = { delivered: 0, clicked: 0, opened: 0 };
   }
-console.log({ 
-  message: 'Delivery tracked successfully', 
-  emailsSent: totalDelivered 
-});
+  if (event === 'delivered') {
+    emailTracking[email].delivered += 1;
 
-  return res.status(200).json({ 
-    message: 'Delivery tracked successfully', 
-    emailsSent: totalDelivered 
-  });
-});
-app.get('/email-opens', async (req, res) => {
-  const { email } = req.query;
- let emailsOpened = 0;
-  if (!email ) {
-    console.warn("Missing email or token in tracking request");
-  } else {
-    try {
-      const user = await User.findOne({ email });
-
-      if (user) {
-          user.emailsOpened += 1;
-          user.lastEmailOpenedAt = new Date();
-          await user.save();
-          console.log(`✅ Email opened by: ${email}, Total Opens: ${user.emailsOpened}`);
-          emailsOpened = user.emailsOpened;
-        }
-         
-      else {
-        console.warn("User not found for email open tracking:", email);
+    console.log(`Email ${email} with Message ID ${messageId} was delivered.`);
+    // Perform actions when email is delivered, such as updating a record or notifying the user.
+  }
+    if(event === 'click')
+  {
+    emailTracking[email].clicked += 1;
+    console.log(`Email ${email} with Message ID ${messageId} clicked.`);
       }
-    } catch (error) {
-      console.error("Error tracking email open:", error);
-    }
-  }
-
-  // Log emailsOpened before sending the response
-  console.log("emailsOpened (before sending header):", emailsOpened);
-  // Send a 1x1 transparent pixel image
-  const pixel = Buffer.from(
-    "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/wcAAwAB/akZWakAAAAASUVORK5CYII=",
-    "base64"
-  );
-console.log("emailsOpened",emailsOpened.toString());
-  res.writeHead(200, {
-   "Content-Type": "application/json",
-   "Cache-Control": "no-cache, no-store, must-revalidate" // Prevent caching
-  });
-
-const responseData = {
-  image: `data:image/png;base64,${pixel}`,
-  emailsOpened: emailsOpened
-};
-console.log("Response Data:", responseData); // Log the response data
-res.end(JSON.stringify(responseData));
-});
-
-app.get('/track-click', async (req, res) => {
-  try {
-    const { email, url } = req.query;
-    
-    if (!email || !url) {
-      return res.status(400).send('Missing email or URL'); 
-    }
-    
-    // Decode email and log it for verification
-    const decodedEmail = decodeURIComponent(email);
-    console.log("Decoded email:", decodedEmail);
-    
-    const user = await User.findOne({ email: decodedEmail });
-
-    if (!user) {
-      return res.status(404).json({ message: 'User not found' });
-    }
-
-    // Update user's click count and last clicked time
-    await User.updateOne(
-      { email: decodedEmail },
-      {
-        $inc: { emailsClicked: 1 }, 
-        $set: { lastEmailClickedAt: new Date() }
+      if(event === 'unique_opened'){
+        emailTracking[email].opened += 1;
+        
+        console.log(`Email ${email} with Message ID ${messageId} was opened.`);
+       
       }
-    );
 
-    console.log("Positive response of email clicked", user.emailsClicked);
-
-    // Log URL before redirecting
-    console.log("Redirecting to URL:", url);
-    
-    // Redirect to the actual link
-    res.redirect(url);
-    
-  } catch (error) {
-    console.error('Error tracking click:', error);
-    res.status(500).send('Internal Server Error');
-  }
 });
 
 
@@ -420,30 +326,44 @@ app.get('/unsubscribe', async (req, res) => {
 const sendEmailAndNotifyWebhook = async (senderName, recipientEmail, recipientName) => {
   try {
      console.log("Sending email to:", recipientEmail); 
-const trackingOpenURL = `http://bulk-email-final2.onrender.com/email-opens?email=${encodeURIComponent(recipientEmail)}`;
-     const trackingClickURL = `http://bulk-email-final2.onrender.com/track-click?email=${encodeURIComponent(recipientEmail)}&url=${encodeURIComponent("https://www.example.com")}`
+
     const personalizedEmailContent = dynamicEmailContent.replace('{{name}}', recipientName);
-    const emailContentWithPixel = `${personalizedEmailContent}
-   <img src="${trackingOpenURL}" width="1" height="1" style="display:block;" alt="this is tracking pixel" />
-   <p><a href="${trackingClickURL}" target="_blank">Click here</a> to visit our website.</p>`
+    const emailContent = `${personalizedEmailContent}`
 
     const sendSmtpEmail = {
       sender: { email: "lavanya.varshney2104@gmail.com", name: senderName },
       to: [{ email: recipientEmail }],
       subject: "hello",
-      htmlContent: emailContentWithPixel,
+      htmlContent: emailContent,
       headers: {
         'X-Tracking-Open': 'true', // Enable open tracking
         'X-Tracking-Click': 'true' // Enable click tracking (if needed)
       },
     };
     const emailResponse = await apiInstance.sendTransacEmail(sendSmtpEmail);
-    console.log("Tracking Pixel URL:", trackingOpenURL);
+
     console.log('Email sent:', emailResponse);
   } catch (error) {
     console.error('Error sending email ', error);
   }
 };
+app.get('/open-rate',async (req, res) => {
+  const totalUsers = await User.countDocuments({});
+  const rates = Object.entries(emailTracking).map(([email, { delivered, opened }]) => {
+    const effectiveDelivered = delivered || totalUsers; 
+    const openRate = effectiveDelivered > 0 ? ((opened / effectiveDelivered) * 100).toFixed(2) : 0;
+    return { email, delivered: effectiveDelivered , opened, openRate: `${openRate}%` };
+  });
+app.get('/click-rate', async (req, res) => {
+  const totalUsers = await User.countDocuments({});
+  const rates = Object.entries(emailTracking).map(([email, { delivered, clicked }]) => {
+    const effectiveDelivered = delivered || totalUsers; // Fallback to total user count if delivered is 0
+    const clickRate = effectiveDelivered > 0 ? ((clicked / effectiveDelivered) * 100).toFixed(2) : 0;
+    return { email, delivered: effectiveDelivered, clicked, clickRate: `${clickRate}%` };
+  });
+
+  res.status(200).json(rates);
+});
 
 app.post('/send-manual-emails', async (req, res) => {
   const token = req.headers['authorization'];  // Get the token from the headers
