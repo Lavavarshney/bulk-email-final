@@ -762,13 +762,14 @@ app.post('/upload-csv', upload.single('csvFile'), async (req, res) => {
             await sendEmailAndNotifyWebhook(decoded.name, cleanedEmail, cleanedName);
             user.emailsSent += 1; 
             await user.save(); // Save the updated user instance
+            console.log(user.emailsSent);
           }
           
         } catch (error) {
           console.error('Error processing user:', error);
         }
       }
- console.log("emails sent count",user.emailsSent);
+ 
       // After processing, save valid users to MongoDB
       try {
         if (validUsers.length > 0) {
