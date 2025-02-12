@@ -11,7 +11,7 @@ const { generateToken, verifyToken } = require('./login'); // Adjust the path to
 const bcrypt = require('bcryptjs');
 const app = express();
 const PORT = process.env.PORT || 3000;
-
+const path = require('path');
 require('dotenv').config();
 
 const apiKey = process.env.BREVO_API_KEY;
