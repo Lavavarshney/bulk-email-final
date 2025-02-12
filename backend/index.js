@@ -762,7 +762,7 @@ app.post('/upload-csv', upload.single('csvFile'), async (req, res) => {
             await sendEmailAndNotifyWebhook(decoded.name, cleanedEmail, cleanedName);
             user.emailsSent += 1; 
             await user.save(); // Save the updated user instance
-            console.log(user.emailsSent);
+         await console.log(user.emailsSent); // Use await here
           }
           
         } catch (error) {
