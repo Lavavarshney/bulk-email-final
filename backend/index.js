@@ -391,8 +391,8 @@ app.post('/send-manual-emails', async (req, res) => {
   }
   console.log("User 's emailsSent before sending: " + user.emailsSent);
 
-  const FREE_EMAIL_LIMIT = 10;
-  const BASIC_EMAIL_LIMIT = 12;
+  const FREE_EMAIL_LIMIT = 2;
+  const BASIC_EMAIL_LIMIT = 5;
   const PREMIUM_EMAIL_LIMIT = 1000;
 
   // Check if the user has exceeded their plan's email limit
@@ -407,7 +407,7 @@ app.post('/send-manual-emails', async (req, res) => {
   if (user.planStatus === "basic" && user.emailsSent >= BASIC_EMAIL_LIMIT) {
     const checkoutUrl = `https://myappstore.lemonsqueezy.com/buy/2f666a6a-1ebb-4bdb-bfae-2e942ba9d12a`; // Basic -> Premium URL
     return res.status(402).json({
-      message: 'You have reached the Basic plan limit (12 emails). Please upgrade to Premium.',
+      message: 'You have reached the Basic plan limit (5 emails). Please upgrade to Premium.',
       checkoutUrl
     });
   }
@@ -585,7 +585,7 @@ app.post('/upload-csv', upload.single('csvFile'), async (req, res) => {
           checkoutUrl
         });
       }
-
+console.log(user.planStatus);
       // Process valid users and send emails
       for (const { name, email } of validUsers) {
         try {
