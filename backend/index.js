@@ -573,7 +573,7 @@ app.post('/upload-csv', upload.single('csvFile'), async (req, res) => {
       if (user.planStatus === "basic" && totalEmailsToSend > BASIC_EMAIL_LIMIT) {
         const checkoutUrl = `https://myappstore.lemonsqueezy.com/buy/2f666a6a-1ebb-4bdb-bfae-2e942ba9d12a`; // Basic -> Premium URL
         return res.status(402).json({
-          message: 'You have reached the Basic plan limit (12 emails). Please upgrade to Premium.',
+          message: 'You have reached the Basic plan limit (5 emails). Please upgrade to Premium.',
           checkoutUrl
         });
       }
