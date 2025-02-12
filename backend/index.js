@@ -558,8 +558,8 @@ app.post('/upload-csv', upload.single('csvFile'), async (req, res) => {
 
       // Check if the user can send more emails after processing the CSV
       const totalEmailsToSend = validUsers.length + user.emailsSent;
-      const FREE_EMAIL_LIMIT = 10;
-      const BASIC_EMAIL_LIMIT = 12;
+      const FREE_EMAIL_LIMIT = 2;
+      const BASIC_EMAIL_LIMIT = 5;
       const PREMIUM_EMAIL_LIMIT = 1000;
 
       if (user.planStatus === "free" && totalEmailsToSend > FREE_EMAIL_LIMIT) {
@@ -663,7 +663,7 @@ app.post('/api/webhook', async (req, res) => {
         emailLimit = 1000;  // Premium email limit
       } else {
         planStatus = "basic";
-        emailLimit = 12;    // Basic email limit
+        emailLimit = 5;    // Basic email limit
       } 
 
       // Only update plan and email limit
