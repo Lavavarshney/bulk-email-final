@@ -485,6 +485,7 @@ const checkEmailContent = (req, res, next) => {
   next();
 };
 
+
 app.post('/upload-csv', upload.single('csvFile'), async (req, res) => {
   if (!req.file) {
     return res.status(400).send('No file uploaded.');
@@ -501,9 +502,9 @@ app.post('/upload-csv', upload.single('csvFile'), async (req, res) => {
 
   const emailContent = req.body.emailContent; // Access the email content
   console.log('Email content received:', emailContent);
-
   dynamicEmailContent = emailContent; // Set the email content
   console.log('File received:', req.file);
+  
   const validUsers = [];
   const invalidUsers = [];
   const rows = [];
@@ -514,36 +515,8 @@ app.post('/upload-csv', upload.single('csvFile'), async (req, res) => {
   if (!user) {
     return res.status(404).json({ message: 'User  not found' });
   }
-  
-  const FREE_EMAIL_LIMIT = 10;
-  const BASIC_EMAIL_LIMIT = 12;
-  const PREMIUM_EMAIL_LIMIT = 1000;
 
-  // Check if the user has exceeded their plan's email limit
-  if (user.planStatus === "free" && user.emailsSent >= FREE_EMAIL_LIMIT) {
-    const checkoutUrl = `https://myappstore.lemonsqueezy.com/buy/45f80958-7809-49ef-8a3f-5aa75851adc3`; // Free -> Premium URL
-    return res.status(402).json({
-      message: 'Email limit reached. Please upgrade to Premium.',
-      checkoutUrl
-    });
-  }
-
-  if (user.planStatus === "basic" && user.emailsSent >= BASIC_EMAIL_LIMIT) {
-    const checkoutUrl = `https://myappstore.lemonsqueezy.com/buy/2f666a6a-1ebb-4bdb-bfae-2e942ba9d12a`; // Basic -> Premium URL
-    return res.status(402).json({
-      message: 'You have reached the Basic plan limit (12 emails). Please upgrade to Premium.',
-      checkoutUrl
-    });
-  }
-
-  if (user.planStatus === "premium" && user.emailsSent >= PREMIUM_EMAIL_LIMIT) {
-    const checkoutUrl = `https://myappstore.lemonsqueezy.com/buy/2f666a6a-1ebb-4bdb-bfae-2e942ba9d12a`; // Premium -> Reached Limit URL
-    return res.status(402).json({
-      message: 'Email limit reached. Please upgrade to a higher plan.',
-      checkoutUrl
-    });
-  }
-
+  // CSV Parsing
   fs.createReadStream(filePath)
     .pipe(csvParser({
       separator: ',',  // Specify the delimiter (comma)
@@ -555,7 +528,7 @@ app.post('/upload-csv', upload.single('csvFile'), async (req, res) => {
     })
     .on('end', async () => {
       console.log('CSV Parsing Finished');
-      
+
       // Process each row after CSV parsing is complete
       for (const row of rows) {
         const { name, email } = row;
@@ -570,206 +543,77 @@ app.post('/upload-csv', upload.single('csvFile'), async (req, res) => {
 
         try {
           // Check for duplicate email in MongoDB
-          if (cleanedEmail !== "lavanya.varshney2104@gmail.com") {
-            const existingUser   = await User.findOne({ email: cleanedEmail });
-            if (existingUser  ) {
-              console.log(`Duplicate email found: ${cleanedEmail}`);
-              continue; } 
-          
-            // If no duplicate, add user to the valid array
-            validUsers.push({ name: cleanedName, email: cleanedEmail });
+          const existingUser  = await User.findOne({ email: cleanedEmail });
+          if (existingUser ) {
+            console.log(`Duplicate email found: ${cleanedEmail}`);
+            continue; // Skip if the email already exists
           }
 
-          // Check if the user can send more emails
-          if (validUsers.length + user.emailsSent > (user.planStatus === "free" ? FREE_EMAIL_LIMIT : user.planStatus === "basic" ? BASIC_EMAIL_LIMIT : PREMIUM_EMAIL_LIMIT)) {
-            return res.status(402).json({
-              message: 'Email limit reached. Please upgrade your plan.',
-              checkoutUrl: user.planStatus === "free" ? 'https://myappstore.lemonsqueezy.com/buy/45f80958-7809-49ef-8a3f-5aa75851adc3' : 'https://myappstore.lemonsqueezy.com/buy/2f666a6a-1ebb-4bdb-bfae-2e942ba9d12a'
-            });
-          }
-
-          // Schedule the email if scheduling parameters are provided
-          if (req.body.scheduleEmail && req.body.scheduleTime) {
-            const delay = parseScheduleTime(req.body.scheduleTime);
-            if (delay !== null) {
-              setTimeout(async () => {
-                await sendEmailAndNotifyWebhook(decoded.name, cleanedEmail, cleanedName);
-                console.log(`Scheduled email sent to ${cleanedEmail} after ${req.body.scheduleTime}`);
-                user.emailsSent += 1; 
-                await user.save(); // Save the updated user instance
-              }, delay);
-            } else {
-              console.log(`Invalid schedule time for ${cleanedEmail}. Email not scheduled.`);
-            }
-          } else {
-            // Send email immediately if no schedule is set
-            await sendEmailAndNotifyWebhook(decoded.name, cleanedEmail, cleanedName);
-            user.emailsSent += 1; 
-            await user.save(); // Save the updated user instance
-          }
-          
+          // If no duplicate, add user to the valid array
+          validUsers.push({ name: cleanedName, email: cleanedEmail });
         } catch (error) {
-          console.error('Error processing user:', error);
+          console.error('Error checking for duplicates:', error);
         }
       }
 
-      // After processing, save valid users to MongoDB
-      try {
-        if (validUsers.length > 0) {
-          await User.insertMany(validUsers);
-          console.log('Users successfully added to the database!');
-          res.status(200).json({
-            message: 'Users added successfully.',
-            validUsers,
-            invalidUsers,
-          });
-        } else {
-          res.status(400).json({ message: 'No valid users to add.' });
-        }
+      // Check if the user can send more emails after processing the CSV
+      const totalEmailsToSend = validUsers.length + user.emailsSent;
+      const FREE_EMAIL_LIMIT = 10;
+      const BASIC_EMAIL_LIMIT = 12;
+      const PREMIUM_EMAIL_LIMIT = 1000;
 
-        if (invalidUsers.length > 0) {
-          console.log('Invalid Users:', invalidUsers);
-        }
-      } catch (error) {
-        console.error('Error inserting into MongoDB:', error);
-        res.status(500).json({ message: 'Error saving users to the database' });
+      if (user.planStatus === "free" && totalEmailsToSend > FREE_EMAIL_LIMIT) {
+        const checkoutUrl = `https://myappstore.lemonsqueezy.com/buy/45f80958-7809-49ef-8a3f-5aa75851adc3`; // Free -> Premium URL
+        return res.status(402).json({
+          message: 'Email limit reached. Please upgrade to Premium.',
+          checkoutUrl
+        });
       }
-    })
-    .on('error', (error) => {
-      console.error('Error parsing CSV file:', error);
-      res.status(500).json({ message: 'Error parsing CSV file' });
-    });
-}); 
-app.post('/upload-csv', upload.single('csvFile'), async (req, res) => {
-  if (!req.file) {
-    return res.status(400).send('No file uploaded.');
-  }
 
-  const token = req.headers['authorization'];  // Get the token from the headers
-  const tokenWithoutBearer = token.startsWith('Bearer ') ? token.split(' ')[1] : token;
-  let decoded;
-  try {
-    decoded = verifyToken(tokenWithoutBearer); // Verify the token to get user info
-  } catch (error) {
-    return res.status(401).json({ message: 'Invalid or expired token' });
-  }
+      if (user.planStatus === "basic" && totalEmailsToSend > BASIC_EMAIL_LIMIT) {
+        const checkoutUrl = `https://myappstore.lemonsqueezy.com/buy/2f666a6a-1ebb-4bdb-bfae-2e942ba9d12a`; // Basic -> Premium URL
+        return res.status(402).json({
+          message: 'You have reached the Basic plan limit (12 emails). Please upgrade to Premium.',
+          checkoutUrl
+        });
+      }
 
-  const emailContent = req.body.emailContent; // Access the email content
-  console.log('Email content received:', emailContent);
+      if (user.planStatus === "premium" && totalEmailsToSend > PREMIUM_EMAIL_LIMIT) {
+        const checkoutUrl = `https://myappstore.lemonsqueezy.com/buy/2f666a6a-1ebb-4bdb-bfae-2e942ba9d12a`; // Premium -> Reached Limit URL
+        return res.status(402).json({
+          message: 'Email limit reached. Please upgrade to a higher plan.',
+          checkoutUrl
+        });
+      }
 
-  dynamicEmailContent = emailContent; // Set the email content
-  console.log('File received:', req.file);
-  const validUsers = [];
-  const invalidUsers = [];
-  const rows = [];
-  const filePath = req.file.path; 
-
-// Retrieve the user instance from the database
-  const user = await User.findOne({ email: decoded.email });
-  if (!user) {
-    return res.status(404).json({ message: 'User  not found' });
-  }
-  
-  const FREE_EMAIL_LIMIT = 10;
-  const BASIC_EMAIL_LIMIT = 12;
-  const PREMIUM_EMAIL_LIMIT = 1000;
-
-  // Check if the user has exceeded their plan's email limit
-  if (user.planStatus === "free" && user.emailsSent >= FREE_EMAIL_LIMIT) {
-    const checkoutUrl = `https://myappstore.lemonsqueezy.com/buy/45f80958-7809-49ef-8a3f-5aa75851adc3`; // Free -> Premium URL
-    return res.status(402).json({
-      message: 'Email limit reached. Please upgrade to Premium.',
-      checkoutUrl
-    });
-  }
-
-  if (user.planStatus === "basic" && user.emailsSent >= BASIC_EMAIL_LIMIT) {
-    const checkoutUrl = `https://myappstore.lemonsqueezy.com/buy/2f666a6a-1ebb-4bdb-bfae-2e942ba9d12a`; // Basic -> Premium URL
-    return res.status(402).json({
-      message: 'You have reached the Basic plan limit (12 emails). Please upgrade to Premium.',
-      checkoutUrl
-    });
-  }
-
-  if (user.planStatus === "premium" && user.emailsSent >= PREMIUM_EMAIL_LIMIT) {
-    const checkoutUrl = `https://myappstore.lemonsqueezy.com/buy/2f666a6a-1ebb-4bdb-bfae-2e942ba9d12a`; // Premium -> Reached Limit URL
-    return res.status(402).json({
-      message: 'Email limit reached. Please upgrade to a higher plan.',
-      checkoutUrl
-    });
-  }
-
-  fs.createReadStream(filePath)
-    .pipe(csvParser({
-      separator: ',',  // Specify the delimiter (comma)
-      quote: '"',      // Specify the quote character
-      headers: ['name', 'email'] // Explicitly define the headers
-    }))
-    .on('data', (row) => {
-      rows.push(row);  // Collect all rows first
-    })
-    .on('end', async () => {
-      console.log('CSV Parsing Finished');
-      
-      // Process each row after CSV parsing is complete
-      for (const row of rows) {
-        const { name, email } = row;
-        const cleanedName = name ? name.trim() : '';
-        const cleanedEmail = email ? email.trim() : '';
-
-        if (!cleanedName || !cleanedEmail || !isValidEmail(cleanedEmail)) {
-          console.log('Invalid data:', row);
-          invalidUsers.push(row); // Store invalid users
-          continue; // Skip invalid rows
-        }
-
+      // Process valid users and send emails
+      for (const { name, email } of validUsers) {
         try {
-          // Check for duplicate email in MongoDB
-          if (cleanedEmail !== "lavanya.varshney2104@gmail.com") {
-            const existingUser  = await User.findOne({ email: cleanedEmail });
-            if (existingUser ) {
-              console.log(`Duplicate email found: ${cleanedEmail}`);
-              continue; // Skip if the email already exists
-            }
-          
-            // If no duplicate, add user to the valid array
-            validUsers.push({ name: cleanedName, email: cleanedEmail });
-          }
-
-          // Check if the user can send more emails
-          if (validUsers.length + user.emailsSent > (user.planStatus === "free" ? FREE_EMAIL_LIMIT : user.planStatus === "basic" ? BASIC_EMAIL_LIMIT : PREMIUM_EMAIL_LIMIT)) {
-            return res.status(402).json({
-              message: 'Email limit reached. Please upgrade your plan.',
-              checkoutUrl: user.planStatus === "free" ? 'https://myappstore.lemonsqueezy.com/buy/45f80958-7809-49ef-8a3f-5aa75851adc3' : 'https://myappstore.lemonsqueezy.com/buy/2f666a6a-1ebb-4bdb-bfae-2e942ba9d12a'
-            });
-          }
-
           // Schedule the email if scheduling parameters are provided
           if (req.body.scheduleEmail && req.body.scheduleTime) {
             const delay = parseScheduleTime(req.body.scheduleTime);
             if (delay !== null) {
               setTimeout(async () => {
-                await sendEmailAndNotifyWebhook(decoded.name, cleanedEmail, cleanedName);
-                console.log(`Scheduled email sent to ${cleanedEmail} after ${req.body.scheduleTime}`);
+                await sendEmailAndNotifyWebhook(decoded.name, email, name);
+                console.log(`Scheduled email sent to ${email} after ${req.body.scheduleTime}`);
                 user.emailsSent += 1; 
                 await user.save(); // Save the updated user instance
               }, delay);
             } else {
-              console.log(`Invalid schedule time for ${cleanedEmail}. Email not scheduled.`);
+              console.log(`Invalid schedule time for ${email}. Email not scheduled.`);
             }
           } else {
             // Send email immediately if no schedule is set
-            await sendEmailAndNotifyWebhook(decoded.name, cleanedEmail, cleanedName);
+            await sendEmailAndNotifyWebhook(decoded.name, email, name);
             user.emailsSent += 1; 
             await user.save(); // Save the updated user instance
-         await console.log(user.emailsSent); // Use await here
+            console.log(user.emailsSent); // Log the updated email count
           }
-          
         } catch (error) {
-          console.error('Error processing user:', error);
+          console.error('Error sending email:', error);
         }
       }
- 
+
       // After processing, save valid users to MongoDB
       try {
         if (validUsers.length > 0) {
@@ -797,7 +641,6 @@ app.post('/upload-csv', upload.single('csvFile'), async (req, res) => {
       res.status(500).json({ message: 'Error parsing CSV file' });
     });
 });
-
 app.post('/api/webhook', async (req, res) => {
   try {
     const event = req.body;
