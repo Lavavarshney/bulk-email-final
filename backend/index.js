@@ -247,7 +247,28 @@ const isValidEmail = (email) => {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   return emailRegex.test(email);
 };
+// Route to generate email content
+app.post('/generate-email-content', async (req, res) => {
+  const { prompt } = req.body;
 
+  try {
+    const response = await axios.post('https://api-inference.huggingface.co/models/google/gemma-2-2b-it', {
+      inputs: prompt,
+    }, {
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${process.env.HUGGINGFACE_API_TOKEN}`,
+      },
+    });
+
+    dynamicEmailContent = response.data[0].generated_text; // Assuming the response structure
+    console.log('Generated email content:', dynamicEmailContent);
+    res.status(200).json({ message: 'Email content generated successfully', content: dynamicEmailContent });
+  } catch (error) {
+    console.error('Error generating email content:', error);
+    res.status(500).json({ message: 'An error occurred while generating the email content.' });
+  }
+});
 // Endpoint to set dynamic email content
 app.post('/send-email-content', async (req, res) => {
   const { emailContent } = req.body;
