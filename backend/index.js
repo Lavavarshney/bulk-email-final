@@ -644,12 +644,13 @@ console.log(user.planStatus);
 app.post('/api/webhook', async (req, res) => {
   try {
     const event = req.body;
-
+    console.log("event",event);
     if (event && event.meta.event_name === "order_created") {
       const customerEmail = event.data.attributes.user_email;
       const productName = event.data.attributes.first_order_item.product_name;
 
       console.log(productName);
+      console.log("customer email", customerEmail);
       const user = await User.findOne({ email: customerEmail });
       if (!user) {
         return res.status(404).json({ message: "User  not found." });
