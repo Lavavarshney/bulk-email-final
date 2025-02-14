@@ -13,7 +13,7 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const path = require('path');
 require('dotenv').config();
-console.log(process.env.HUGGINGFACE_API_TOKEN);
+console.log("hugging face api token",process.env.HUGGINGFACE_API_TOKEN);
 const apiKey = process.env.BREVO_API_KEY;
 const emailTracking = {}; // { email: { delivered: count, clicked: count } }
 
