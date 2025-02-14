@@ -13,7 +13,7 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const path = require('path');
 require('dotenv').config();
-console.log("hugging face api token",process.env.HUGGINGFACE_API_TOKEN);
+
 const apiKey = process.env.BREVO_API_KEY;
 const emailTracking = {}; // { email: { delivered: count, clicked: count } }
 
@@ -21,7 +21,7 @@ const emailTracking = {}; // { email: { delivered: count, clicked: count } }
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-
+console.log("hugging face api token",process.env.HUGGINGFACE_API_TOKEN);
 app.post('/signup', async (req, res) => {
   const { name, email, password, confirmPassword } = req.body;
   console.log(req.body); // Log the request body to debug
