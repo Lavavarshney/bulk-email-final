@@ -21,7 +21,9 @@ const emailTracking = {}; // { email: { delivered: count, clicked: count } }
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-console.log("hugging face api token",process.env.HUGGINGFACE_API_TOKEN);
+console.log("All ENV Variables:", process.env);
+console.log("Hugging Face API Token:", process.env.HUGGINGFACE_API_TOKEN);
+
 app.post('/signup', async (req, res) => {
   const { name, email, password, confirmPassword } = req.body;
   console.log(req.body); // Log the request body to debug
@@ -62,6 +64,9 @@ app.post('/login', async (req, res) => {
     if (!user) {
       return res.status(400).json({ message: 'User  not found' });
     }
+    console.log("All ENV Variables:", process.env);
+console.log("Hugging Face API Token:", process.env.HUGGINGFACE_API_TOKEN);
+
     console.log('Password:', password);
     console.log('Hashed Password from DB:', user.password);
     console.log("User  from DB:", user); // Debug user data
