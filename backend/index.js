@@ -389,7 +389,7 @@ app.post('/send-manual-emails', async (req, res) => {
   console.log('Email content received:', emailContent);
 
   dynamicEmailContent = emailContent;
-
+  console.log(dynamicEmailContent);
   if (!Array.isArray(emailList) || emailList.length === 0) {
     return res.status(400).json({ message: 'Invalid email list provided.' });
   }
