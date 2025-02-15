@@ -449,22 +449,11 @@ app.post('/send-manual-emails', async (req, res) => {
   try {
     // Process each valid email
     const emailPromises = validEmails.map(async ({ name, email }) => {
+       const emailAlreadySent = user.sentEmails.some(sentEmail => sentEmail.emailContent === emailContent && sentEmail.email === email);
       // Check if user already exists in the database
-      if (email !== "lavanya.varshney2104@gmail.com") {
-        const existingUser  = await User.findOne({ email: email });
-        if (!existingUser ) {
-          // Add user to the database if they don't already exist
-          const newUser  = new User({
-            name: name,
-            email: email,
-            subscribed: true, // Assuming the user is subscribed by default
-          });
-          await newUser .save();
-          console.log(`User  added to database: ${name}, ${email}`);
-        } else {
-          // Log to the console instead of alert
-          throw new Error(`User  already exists: ${name}, ${email}`);
-        }
+         if (emailAlreadySent) {
+        console.log(`Email already sent to ${email}. Skipping.`);
+        return; // Skip sending if the email has already been sent
       }
       if (scheduleEmail && scheduleTime) {
         // If scheduling is enabled, calculate delay and schedule the email
@@ -473,6 +462,7 @@ app.post('/send-manual-emails', async (req, res) => {
           setTimeout(async () => {
             await sendEmailAndNotifyWebhook(decoded.name, email, name);
             user.emailsSent += 1; 
+            user.sentEmails.push({ emailContent, timestamp: new Date() }); // Track the sent email
             await user.save(); // Save the updated user instance
             console.log("emailSent count", user.emailsSent);
             console.log(`Scheduled email sent to ${email} after ${scheduleTime}`);
@@ -484,6 +474,7 @@ app.post('/send-manual-emails', async (req, res) => {
         // Send email immediately if no scheduling is set
         await sendEmailAndNotifyWebhook(decoded.name, email, name);
         user.emailsSent += 1; 
+        user.sentEmails.push({ emailContent, timestamp: new Date() }); // Track the sent email
         await user.save(); // Save the updated user instance
         console.log("emailSent count", user.emailsSent);
       }
