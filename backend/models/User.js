@@ -13,6 +13,10 @@ const userSchema = new mongoose.Schema({
   password: { type: String },
   subscribed: { type: Boolean, default: true }, // Add this field
   emailsSent: { type: Number, default: 0 }, // Track the number of emails sent
+    sentEmails: [{ // Array to track sent emails
+    emailContent: String,
+    timestamp: { type: Date, default: Date.now }
+  }],
   planStatus: {type: String, enum:["free","basic","premium","paid"], default:"free"},
   emailLimit: {type: Number, default: 5},
   emailsOpened: { type: Number, default: 0 }, // Track the number of emails opened
