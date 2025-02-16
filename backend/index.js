@@ -624,7 +624,7 @@ console.log(user.planStatus);
             const delay = parseScheduleTime(req.body.scheduleTime);
             if (delay !== null) {
               setTimeout(async () => {
-                await sendEmailAndNotifyWebhook(decoded.name, email, name);
+                await sendEmailAndNotifyWebhook(decoded.name, email, name,subject);
                 console.log(`Scheduled email sent to ${email} after ${req.body.scheduleTime}`);
             // Add the email to sentEmails array in the database
         user.sentEmails.push({ emailContent, email });
@@ -636,7 +636,7 @@ console.log(user.planStatus);
             }
           } else {
             // Send email immediately if no schedule is set
-            await sendEmailAndNotifyWebhook(decoded.name, email, name);
+            await sendEmailAndNotifyWebhook(decoded.name, email, name,subject);
                 // Add the email to sentEmails array in the database
     user.sentEmails.push({ emailContent, email });
             user.emailsSent += 1; 
