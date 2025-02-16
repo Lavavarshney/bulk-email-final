@@ -522,7 +522,7 @@ const processedEmails = new Set();
   } catch (error) {
     return res.status(401).json({ message: 'Invalid or expired token' });
   }
-
+  const subject = req.body.subject;
   const emailContent = req.body.emailContent; // Access the email content
   console.log('Email content received:', emailContent);
     console.log('Subject received:', subject);
