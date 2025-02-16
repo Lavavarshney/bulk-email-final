@@ -447,14 +447,20 @@ app.post('/send-manual-emails', async (req, res) => {
   }
 
   try {
-    // Process each valid email
-    const emailPromises = validEmails.map(async ({ name, email }) => {
+    // Use a Set to track processed emails
+    const processedEmails = new Set();
+        // Process each valid email
+       const emailPromises = validEmails.map(async ({ name, email }) => {
        const emailAlreadySent = user.sentEmails.some(sentEmail => sentEmail.emailContent === emailContent && sentEmail.email === email);
       // Check if user already exists in the database
-         if (emailAlreadySent) {
+         if (emailAlreadySent  || processedEmails.has(email)) {
         console.log(`Email already sent to ${email}. Skipping.`);
         return; // Skip sending if the email has already been sent
       }
+         
+      // Mark this email as processed
+      processedEmails.add(email);
+
       if (scheduleEmail && scheduleTime) {
         // If scheduling is enabled, calculate delay and schedule the email
         const delay = parseScheduleTime(scheduleTime);
