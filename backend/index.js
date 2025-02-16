@@ -513,7 +513,7 @@ app.post('/upload-csv', upload.single('csvFile'), async (req, res) => {
   if (!req.file) {
     return res.status(400).send('No file uploaded.');
   }
-
+const processedEmails = new Set(); 
   const token = req.headers['authorization'];  // Get the token from the headers
   const tokenWithoutBearer = token.startsWith('Bearer ') ? token.split(' ')[1] : token;
   let decoded;
@@ -563,17 +563,27 @@ app.post('/upload-csv', upload.single('csvFile'), async (req, res) => {
           invalidUsers.push(row); // Store invalid users
           continue; // Skip invalid rows
         }
- // Check if the email has already been sent
-        const emailAlreadySent = user.sentEmails.some(sentEmail => sentEmail.emailContent === emailContent && sentEmail.email === cleanedEmail);
-        if (emailAlreadySent) {
-          console.log(`Email already sent to ${cleanedEmail}. Skipping.`);
-          invalidUsers.push({ name: cleanedName, email: cleanedEmail }); // Store as invalid
-          continue; // Skip if the email has already been sent
-        }
-        // If no duplicate, add user to the valid array
-        validUsers.push({ name: cleanedName, email: cleanedEmail });
+          // Check if the email was already processed in this session
+     if (processedEmails.has(cleanedEmail)) {
+    console.log(`Duplicate email in same upload: ${cleanedEmail}. Skipping.`);
+    invalidUsers.push({ name: cleanedName, email: cleanedEmail });
+    continue;
+    }
 
-      }
+  // Check if the email was already sent before (from DB)
+  const emailAlreadySent = user.sentEmails.some(
+    sentEmail => sentEmail.emailContent === emailContent && sentEmail.email === cleanedEmail
+  );
+  if (emailAlreadySent) {
+    console.log(`Email already sent to ${cleanedEmail}. Skipping.`);
+    invalidUsers.push({ name: cleanedName, email: cleanedEmail });
+    continue;
+  }
+
+  // Add to valid users and mark as processed
+  validUsers.push({ name: cleanedName, email: cleanedEmail });
+  processedEmails.add(cleanedEmail); // Mark email as processed
+}
 
       // Check if the user can send more emails after processing the CSV
       const totalEmailsToSend = validUsers.length + user.emailsSent;
@@ -615,6 +625,8 @@ console.log(user.planStatus);
               setTimeout(async () => {
                 await sendEmailAndNotifyWebhook(decoded.name, email, name);
                 console.log(`Scheduled email sent to ${email} after ${req.body.scheduleTime}`);
+            // Add the email to sentEmails array in the database
+        user.sentEmails.push({ emailContent, email });
                 user.emailsSent += 1; 
                 await user.save(); // Save the updated user instance
               }, delay);
@@ -624,6 +636,8 @@ console.log(user.planStatus);
           } else {
             // Send email immediately if no schedule is set
             await sendEmailAndNotifyWebhook(decoded.name, email, name);
+                // Add the email to sentEmails array in the database
+    user.sentEmails.push({ emailContent, email });
             user.emailsSent += 1; 
             await user.save(); // Save the updated user instance
             console.log(user.emailsSent); // Log the updated email count
