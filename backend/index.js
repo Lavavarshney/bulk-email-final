@@ -525,6 +525,7 @@ const processedEmails = new Set();
 
   const emailContent = req.body.emailContent; // Access the email content
   console.log('Email content received:', emailContent);
+    console.log('Subject received:', subject);
   dynamicEmailContent = emailContent; // Set the email content
   console.log('File received:', req.file);
   
