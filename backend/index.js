@@ -563,20 +563,16 @@ app.post('/upload-csv', upload.single('csvFile'), async (req, res) => {
           invalidUsers.push(row); // Store invalid users
           continue; // Skip invalid rows
         }
-
-        try {
-          // Check for duplicate email in MongoDB
-          const existingUser  = await User.findOne({ email: cleanedEmail });
-          if (existingUser ) {
-            console.log(`Duplicate email found: ${cleanedEmail}`);
-            continue; // Skip if the email already exists
-          }
-
-          // If no duplicate, add user to the valid array
-          validUsers.push({ name: cleanedName, email: cleanedEmail });
-        } catch (error) {
-          console.error('Error checking for duplicates:', error);
+ // Check if the email has already been sent
+        const emailAlreadySent = user.sentEmails.some(sentEmail => sentEmail.emailContent === emailContent && sentEmail.email === cleanedEmail);
+        if (emailAlreadySent) {
+          console.log(`Email already sent to ${cleanedEmail}. Skipping.`);
+          continue; // Skip if the email has already been sent
         }
+
+        // If no duplicate, add user to the valid array
+        validUsers.push({ name: cleanedName, email: cleanedEmail });
+
       }
 
       // Check if the user can send more emails after processing the CSV
