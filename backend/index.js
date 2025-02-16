@@ -322,7 +322,7 @@ app.post('/webhook', async(req, res) => {
 
 
 // Helper function to send email
-const sendEmailAndNotifyWebhook = async (senderName, recipientEmail, recipientName) => {
+const sendEmailAndNotifyWebhook = async (senderName, recipientEmail, recipientName,subject) => {
   try {
      console.log("Sending email to:", recipientEmail); 
 
@@ -332,7 +332,7 @@ const sendEmailAndNotifyWebhook = async (senderName, recipientEmail, recipientNa
     const sendSmtpEmail = {
       sender: { email: "lavanya.varshney2104@gmail.com", name: senderName },
       to: [{ email: recipientEmail }],
-      subject: "hello",
+      subject: subject,
       htmlContent: emailContent,
       headers: {
         'X-Tracking-Open': 'true', // Enable open tracking
@@ -383,7 +383,7 @@ app.post('/send-manual-emails', async (req, res) => {
   } catch (error) {
     return res.status(401).json({ message: 'Invalid or expired token' });
   }
-  const { emailList, scheduleEmail, scheduleTime } = req.body; // Add scheduling options
+  const { emailList, scheduleEmail, scheduleTime,subject } = req.body; // Add scheduling options
   console.log("emailList", emailList);
   const emailContent = req.body.emailContent; // Access the email content
   console.log('Email content received:', emailContent);
@@ -466,7 +466,7 @@ app.post('/send-manual-emails', async (req, res) => {
         const delay = parseScheduleTime(scheduleTime);
         if (delay !== null) {
           setTimeout(async () => {
-            await sendEmailAndNotifyWebhook(decoded.name, email, name);
+            await sendEmailAndNotifyWebhook(decoded.name, email, name,subject);
             user.emailsSent += 1; 
             user.sentEmails.push({ emailContent, timestamp: new Date() }); // Track the sent email
             await user.save(); // Save the updated user instance
@@ -478,7 +478,7 @@ app.post('/send-manual-emails', async (req, res) => {
         }
       } else {
         // Send email immediately if no scheduling is set
-        await sendEmailAndNotifyWebhook(decoded.name, email, name);
+        await sendEmailAndNotifyWebhook(decoded.name, email, name,subject);
         user.emailsSent += 1; 
         user.sentEmails.push({ emailContent, timestamp: new Date() }); // Track the sent email
         await user.save(); // Save the updated user instance
