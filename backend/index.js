@@ -570,14 +570,6 @@ app.post('/upload-csv', upload.single('csvFile'), async (req, res) => {
           invalidUsers.push({ name: cleanedName, email: cleanedEmail }); // Store as invalid
           continue; // Skip if the email has already been sent
         }
-  // Check for duplicate email in MongoDB
-        const existingUser  = await User.findOne({ email: cleanedEmail });
-        if (existingUser ) {
-          console.log(`Duplicate email found: ${cleanedEmail}`);
-          invalidUsers.push({ name: cleanedName, email: cleanedEmail }); // Store as invalid
-          continue; // Skip if the email already exists
-        }
-
         // If no duplicate, add user to the valid array
         validUsers.push({ name: cleanedName, email: cleanedEmail });
 
