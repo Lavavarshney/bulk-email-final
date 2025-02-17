@@ -229,8 +229,8 @@ const calculateTimeDifference = (scheduleTime) => {
   const scheduledDateTime = new Date(scheduleTime); // Convert the input to a Date object
 
   // Log the current time and scheduled time for debugging
-  console.log("Current Time:", currentTime);
-  console.log("Scheduled Time:", scheduledDateTime);
+  console.log("Current Time:", currentTime.toISOString());
+  console.log("Scheduled Time:", scheduledDateTime.toISOString());
 
   // Calculate the difference in milliseconds
   const differenceInMilliseconds = scheduledDateTime.getTime() - currentTime.getTime();
