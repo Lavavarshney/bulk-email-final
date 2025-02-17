@@ -455,7 +455,7 @@ app.post('/send-manual-emails', async (req, res) => {
 
       if (scheduleEmail && scheduleTime) {
         // If scheduling is enabled, calculate delay and schedule the email
-         const delay = calculateTimeDifference(); 
+         const delay = calculateTimeDifference(scheduleTime); 
         console.log(delay);
         if (delay !== null) {
           setTimeout(async () => {
