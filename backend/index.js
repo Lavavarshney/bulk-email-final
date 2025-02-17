@@ -21,7 +21,7 @@ const emailTracking = {}; // { email: { delivered: count, clicked: count } }
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-console.log("All ENV Variables:", process.env);
+
 console.log("Hugging Face API Token:", process.env.HUGGINGFACE_API_TOKEN);
 
 app.post('/signup', async (req, res) => {
@@ -228,8 +228,15 @@ const calculateTimeDifference = (scheduleTime) => {
   const currentTime = new Date(); // Get the current time
   const scheduledDateTime = new Date(scheduleTime); // Convert the input to a Date object
 
+  // Log the current time and scheduled time for debugging
+  console.log("Current Time:", currentTime);
+  console.log("Scheduled Time:", scheduledDateTime);
+
   // Calculate the difference in milliseconds
   const differenceInMilliseconds = scheduledDateTime.getTime() - currentTime.getTime();
+
+  // Log the calculated difference
+  console.log("Difference in Milliseconds:", differenceInMilliseconds);
 
   // If the scheduled time is in the past, return null or handle accordingly
   if (differenceInMilliseconds < 0) {
@@ -238,7 +245,6 @@ const calculateTimeDifference = (scheduleTime) => {
 
   return differenceInMilliseconds; // Return the delay in milliseconds
 };
-
 // Helper function to validate email format
 const isValidEmail = (email) => {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
