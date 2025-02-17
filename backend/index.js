@@ -222,7 +222,7 @@ const upload = multer({ storage: storage });
 
 // Helper function to convert schedule time into milliseconds
 
-const calculateTimeDifference = () => {
+const calculateTimeDifference = (scheduleTime) => {
   if (!scheduleTime) return null; // Return null if no schedule time is set
 
   const currentTime = new Date(); // Get the current time
