@@ -464,6 +464,7 @@ app.post('/send-manual-emails', async (req, res) => {
       if (scheduleEmail && scheduleTime) {
         // If scheduling is enabled, calculate delay and schedule the email
         const delay = parseScheduleTime(scheduleTime);
+        console.log(delay);
         if (delay !== null) {
           setTimeout(async () => {
             await sendEmailAndNotifyWebhook(decoded.name, email, name,subject);
