@@ -221,30 +221,22 @@ const storage = multer.diskStorage({
 const upload = multer({ storage: storage });
 
 // Helper function to convert schedule time into milliseconds
-const parseScheduleTime = (time) => {
-  const regex = /(\d+)([smh])/; // Regex to match numbers with time units (seconds, minutes, hours)
-  const match = time.match(regex);
-  if (!match) return null;
 
-  const value = parseInt(match[1], 10);
-  const unit = match[2];
+const calculateTimeDifference = () => {
+  if (!scheduleTime) return null; // Return null if no schedule time is set
 
-  let delay = 0;
-  switch (unit) {
-    case 's':  // seconds
-      delay = value * 1000;
-      break;
-    case 'm':  // minutes
-      delay = value * 60 * 1000;
-      break;
-    case 'h':  // hours
-      delay = value * 60 * 60 * 1000;
-      break;
-    default:
-      return null;
+  const currentTime = new Date(); // Get the current time
+  const scheduledDateTime = new Date(scheduleTime); // Convert the input to a Date object
+
+  // Calculate the difference in milliseconds
+  const differenceInMilliseconds = scheduledDateTime.getTime() - currentTime.getTime();
+
+  // If the scheduled time is in the past, return null or handle accordingly
+  if (differenceInMilliseconds < 0) {
+    return null; // Indicate that the scheduled time is in the past
   }
 
-  return delay;
+  return differenceInMilliseconds; // Return the delay in milliseconds
 };
 
 // Helper function to validate email format
@@ -463,7 +455,7 @@ app.post('/send-manual-emails', async (req, res) => {
 
       if (scheduleEmail && scheduleTime) {
         // If scheduling is enabled, calculate delay and schedule the email
-        const delay = parseScheduleTime(scheduleTime);
+         const delay = calculateTimeDifference(); 
         console.log(delay);
         if (delay !== null) {
           setTimeout(async () => {
