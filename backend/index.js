@@ -619,6 +619,7 @@ console.log(user.planStatus);
       for (const { name, email } of validUsers) {
         try {
           // Schedule the email if scheduling parameters are provided
+          console.log(req.body.scheduleTime);
           if (req.body.scheduleEmail && req.body.scheduleTime) {
             const delay = calculateTimeDifference(scheduleTime); 
             if (delay !== null) {
