@@ -619,10 +619,12 @@ console.log(user.planStatus);
       for (const { name, email } of validUsers) {
         try {
           // Schedule the email if scheduling parameters are provided
+            console.log("Current Time:", new Date().toISOString());
+        console.log("Scheduled Time:", req.body.scheduleTime);
           console.log(req.body.scheduleTime);
           if (req.body.scheduleEmail && req.body.scheduleTime) {
             const delay = calculateTimeDifference(req.body.scheduleTime); 
-            if (delay !== null) {
+            if (delay>0) {
               setTimeout(async () => {
                 await sendEmailAndNotifyWebhook(decoded.name, email, name,subject);
                 console.log(`Scheduled email sent to ${email} after ${req.body.scheduleTime}`);
