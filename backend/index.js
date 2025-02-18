@@ -633,9 +633,7 @@ console.log(user.planStatus);
                 user.emailsSent += 1; 
                 await user.save(); // Save the updated user instance
               }, delay);
-            } else {
-              console.log(`Invalid schedule time for ${email}. Email not scheduled.`);
-            }
+            
           } else {
             // Send email immediately if no schedule is set
             await sendEmailAndNotifyWebhook(decoded.name, email, name,subject);
