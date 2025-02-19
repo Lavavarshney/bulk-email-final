@@ -320,7 +320,7 @@ app.post('/webhook', async(req, res) => {
 
 
 // Helper function to send email
-const sendEmailAndNotifyWebhook = async (senderName, recipientEmail, recipientName,subject,emailContent) => {
+const sendEmailAndNotifyWebhook = async (senderName, recipientEmail, recipientName,subject) => {
   try {
      console.log("Sending email to:", recipientEmail); 
 
@@ -471,7 +471,7 @@ const totalEmailsToSend = validEmails.length + user.emailsSent;
         console.log(delay);
         if (delay !== null) {
           setTimeout(async () => {
-            await sendEmailAndNotifyWebhook(decoded.name, email, name,subject,dynamicEmailContent);
+            await sendEmailAndNotifyWebhook(decoded.name, email, name,subject);
             user.emailsSent += 1; 
             user.sentEmails.push({ emailContent, timestamp: new Date() }); // Track the sent email
             await user.save(); // Save the updated user instance
@@ -483,7 +483,7 @@ const totalEmailsToSend = validEmails.length + user.emailsSent;
         }
       } else {
         // Send email immediately if no scheduling is set
-        await sendEmailAndNotifyWebhook(decoded.name, email, name,subject,dynamicEmailContent);
+        await sendEmailAndNotifyWebhook(decoded.name, email, name,subject);
         user.emailsSent += 1; 
         user.sentEmails.push({ emailContent, timestamp: new Date() }); // Track the sent email
         await user.save(); // Save the updated user instance
