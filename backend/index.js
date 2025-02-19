@@ -320,7 +320,7 @@ app.post('/webhook', async(req, res) => {
 
 
 // Helper function to send email
-const sendEmailAndNotifyWebhook = async (senderName, recipientEmail, recipientName,subject) => {
+const sendEmailAndNotifyWebhook = async (senderName, recipientEmail, recipientName,subject,emailContent) => {
   try {
      console.log("Sending email to:", recipientEmail); 
 
@@ -381,7 +381,7 @@ app.post('/send-manual-emails', async (req, res) => {
   } catch (error) {
     return res.status(401).json({ message: 'Invalid or expired token' });
   }
-  const { emailList, scheduleEmail, scheduleTime,subject } = req.body; // Add scheduling options
+  const { emailList, scheduleEmail, scheduleTime,subject} = req.body; // Add scheduling options
   console.log("emailList", emailList);
   const emailContent = req.body.emailContent; // Access the email content
   console.log('Email content received:', emailContent);
@@ -450,7 +450,7 @@ app.post('/send-manual-emails', async (req, res) => {
         // Process each valid email
        const emailPromises = validEmails.map(async ({ name, email }) => {
            console.log(`Preparing to send email to: ${email}`);
-  console.log('Email content:', emailContent);
+ console.log('Email content before sending:', dynamicEmailContent); // Log the content here
 
        const emailAlreadySent = user.sentEmails.some(sentEmail => sentEmail.emailContent === emailContent && sentEmail.email === email);
       // Check if user already exists in the database
@@ -468,7 +468,7 @@ app.post('/send-manual-emails', async (req, res) => {
         console.log(delay);
         if (delay !== null) {
           setTimeout(async () => {
-            await sendEmailAndNotifyWebhook(decoded.name, email, name,subject);
+            await sendEmailAndNotifyWebhook(decoded.name, email, name,subject,dynamicEmailContent);
             user.emailsSent += 1; 
             user.sentEmails.push({ emailContent, timestamp: new Date() }); // Track the sent email
             await user.save(); // Save the updated user instance
@@ -480,7 +480,7 @@ app.post('/send-manual-emails', async (req, res) => {
         }
       } else {
         // Send email immediately if no scheduling is set
-        await sendEmailAndNotifyWebhook(decoded.name, email, name,subject);
+        await sendEmailAndNotifyWebhook(decoded.name, email, name,subject,dynamicEmailContent);
         user.emailsSent += 1; 
         user.sentEmails.push({ emailContent, timestamp: new Date() }); // Track the sent email
         await user.save(); // Save the updated user instance
