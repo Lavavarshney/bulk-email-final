@@ -415,8 +415,8 @@ app.post('/send-manual-emails', async (req, res) => {
   }
   console.log("User 's emailsSent before sending: " + user.emailsSent);
   console.log("User 's planStatus: " + user.planStatus);
-  emails after processing the CSV
-      const totalEmailsToSend = validUsers.length + user.emailsSent;
+ 
+const totalEmailsToSend = validUsers.length + user.emailsSent;
       
   const FREE_EMAIL_LIMIT = 2;
   const BASIC_EMAIL_LIMIT = 5;
