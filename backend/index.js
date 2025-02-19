@@ -615,38 +615,39 @@ const processedEmails = new Set();
         });
       }
 console.log(user.planStatus);
-      // Process valid users and send emails
-      for (const { name, email } of validUsers) {
-        try {
-          // Schedule the email if scheduling parameters are provided
-            console.log("Current Time:", new Date().toISOString());
-        console.log("Scheduled Time:", req.body.scheduleTime);
-          console.log(req.body.scheduleTime);
-          if (req.body.scheduleEmail && req.body.scheduleTime) {
-            const delay = calculateTimeDifference(req.body.scheduleTime); 
-            if (delay>0) {
-              setTimeout(async () => {
-                await sendEmailAndNotifyWebhook(decoded.name, email, name,subject);
-                console.log(`Scheduled email sent to ${email} after ${req.body.scheduleTime}`);
-            // Add the email to sentEmails array in the database
+    for (const { name, email } of validUsers) {
+  try {
+    // Schedule the email if scheduling parameters are provided
+    console.log("Current Time:", new Date().toISOString());
+    console.log("Scheduled Time:", req.body.scheduleTime);
+    
+    if (req.body.scheduleEmail && req.body.scheduleTime) {
+      const delay = calculateTimeDifference(req.body.scheduleTime); 
+      if (delay > 0) {
+        setTimeout(async () => {
+          await sendEmailAndNotifyWebhook(decoded.name, email, name, subject);
+          console.log(`Scheduled email sent to ${email} after ${req.body.scheduleTime}`);
+          
+          // Add the email to sentEmails array in the database
+          user.sentEmails.push({ emailContent, email });
+          user.emailsSent += 1; 
+          await user.save(); // Save the updated user instance
+        }, delay);
+      } else {
+        // Send email immediately if no schedule is set
+        await sendEmailAndNotifyWebhook(decoded.name, email, name, subject);
+        
+        // Add the email to sentEmails array in the database
         user.sentEmails.push({ emailContent, email });
-                user.emailsSent += 1; 
-                await user.save(); // Save the updated user instance
-              }, delay);
-            
-          } else {
-            // Send email immediately if no schedule is set
-            await sendEmailAndNotifyWebhook(decoded.name, email, name,subject);
-                // Add the email to sentEmails array in the database
-    user.sentEmails.push({ emailContent, email });
-            user.emailsSent += 1; 
-            await user.save(); // Save the updated user instance
-            console.log(user.emailsSent); // Log the updated email count
-          }
-        } catch (error) {
-          console.error('Error sending email:', error);
-        }
+        user.emailsSent += 1; 
+        await user.save(); // Save the updated user instance
+        console.log(user.emailsSent); // Log the updated email count
       }
+    }
+  } catch (error) {
+    console.error('Error sending email:', error);
+  }
+}
 
       // After processing, save valid users to MongoDB
       try {
