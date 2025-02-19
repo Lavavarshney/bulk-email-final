@@ -320,7 +320,7 @@ app.post('/webhook', async(req, res) => {
 
 
 // Helper function to send email
-const sendEmailAndNotifyWebhook = async (senderName, recipientEmail, recipientName,subject) => {
+const sendEmailAndNotifyWebhook = async (senderName, recipientEmail, recipientName,subject,emailContent) => {
   try {
      console.log("Sending email to:", recipientEmail); 
 
@@ -471,7 +471,7 @@ const totalEmailsToSend = validEmails.length + user.emailsSent;
         console.log(delay);
         if (delay !== null) {
           setTimeout(async () => {
-            await sendEmailAndNotifyWebhook(decoded.name, email, name,subject);
+            await sendEmailAndNotifyWebhook(decoded.name, email, name,subject,dynamicEmailContent);
             user.emailsSent += 1; 
             user.sentEmails.push({ emailContent, timestamp: new Date() }); // Track the sent email
             await user.save(); // Save the updated user instance
@@ -483,7 +483,7 @@ const totalEmailsToSend = validEmails.length + user.emailsSent;
         }
       } else {
         // Send email immediately if no scheduling is set
-        await sendEmailAndNotifyWebhook(decoded.name, email, name,subject);
+        await sendEmailAndNotifyWebhook(decoded.name, email, name,subject,dynamicEmailContent);
         user.emailsSent += 1; 
         user.sentEmails.push({ emailContent, timestamp: new Date() }); // Track the sent email
         await user.save(); // Save the updated user instance
@@ -632,7 +632,7 @@ console.log(user.planStatus);
       const delay = calculateTimeDifference(req.body.scheduleTime); 
       if (delay > 0) {
         setTimeout(async () => {
-          await sendEmailAndNotifyWebhook(decoded.name, email, name, subject);
+          await sendEmailAndNotifyWebhook(decoded.name, email, name, subject,dynamicEmailContent);
           console.log(`Scheduled email sent to ${email} after ${req.body.scheduleTime}`);
           
           // Add the email to sentEmails array in the database
@@ -642,7 +642,7 @@ console.log(user.planStatus);
         }, delay);
       } else {
         // Send email immediately if no schedule is set
-        await sendEmailAndNotifyWebhook(decoded.name, email, name, subject);
+        await sendEmailAndNotifyWebhook(decoded.name, email, name, subject,dynamicEmailContent);
         
         // Add the email to sentEmails array in the database
         user.sentEmails.push({ emailContent, email });
