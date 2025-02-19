@@ -449,6 +449,9 @@ app.post('/send-manual-emails', async (req, res) => {
     const processedEmails = new Set();
         // Process each valid email
        const emailPromises = validEmails.map(async ({ name, email }) => {
+           console.log(`Preparing to send email to: ${email}`);
+  console.log('Email content:', emailContent);
+
        const emailAlreadySent = user.sentEmails.some(sentEmail => sentEmail.emailContent === emailContent && sentEmail.email === email);
       // Check if user already exists in the database
          if (emailAlreadySent  || processedEmails.has(email)) {
