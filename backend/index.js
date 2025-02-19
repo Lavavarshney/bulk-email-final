@@ -587,10 +587,11 @@ const processedEmails = new Set();
 
       // Check if the user can send more emails after processing the CSV
       const totalEmailsToSend = validUsers.length + user.emailsSent;
+      console.log("totalEmailsToSend",totalEmailsToSend)
       const FREE_EMAIL_LIMIT = 2;
       const BASIC_EMAIL_LIMIT = 5;
       const PREMIUM_EMAIL_LIMIT = 1000;
-
+      console.log("planStatus",user.planStatus);
       if (user.planStatus === "free" && totalEmailsToSend > FREE_EMAIL_LIMIT) {
         const checkoutUrl = `https://myappstore.lemonsqueezy.com/buy/45f80958-7809-49ef-8a3f-5aa75851adc3`; // Free -> Premium URL
         return res.status(402).json({
