@@ -414,7 +414,7 @@ app.post('/send-manual-emails', async (req, res) => {
     return res.status(404).json({ message: 'User  not found' });
   }
   console.log("User 's emailsSent before sending: " + user.emailsSent);
-
+  console.log("User 's planStatus: " + user.planStatus);
   const FREE_EMAIL_LIMIT = 2;
   const BASIC_EMAIL_LIMIT = 5;
   const PREMIUM_EMAIL_LIMIT = 1000;
