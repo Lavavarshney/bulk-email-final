@@ -501,7 +501,7 @@ const totalEmailsToSend = validEmails.length + user.emailsSent;
     });
   } catch (error) {
     console.error('Error sending emails:', error);
-    res.status(500).json({ message: 'Error sending emails.', error });
+    res.status(500).json({ error });
   }
 });
 
