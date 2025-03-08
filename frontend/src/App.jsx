@@ -4,7 +4,7 @@ import Demo from "./Demo";
 import Homepage from "./HomePage";
 import AuthForm from "./Login";
 import EmailAnalyticsDashboard from "./EmailAnalytics";
-
+import UsageStats from "./UsageStats";
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
@@ -32,11 +32,16 @@ function App() {
   return (
     <Router>
       <Routes>
+
         <Route path="/" element={<AuthForm onLogin={handleLogin} />} />
+        <Route path="/payment" element={<UsageStats/>}  />
         {console.log("Is Authenticated:", isAuthenticated)}
         <Route path="/home" element= {<Homepage/>} />
-      <Route path="/demo" element={<Demo/>} />
-        <Route path="/email-analytics" element= {<EmailAnalyticsDashboard />} />
+        <Route path="/demo" element={<Demo/>} />
+        <Route 
+  path="/email-analytics" 
+  element={<EmailAnalyticsDashboard token={localStorage.getItem('token')} />} 
+/>
 
       </Routes>
     </Router>
