@@ -402,7 +402,7 @@ const navigate=useNavigate();
           emailList: recipients,
           scheduleEmail,
           scheduleTime,
-         // subject, // Add subject here
+           subject, // Add subject here
           emailContent: getCompleteEmailContent(),
         }),
       });
