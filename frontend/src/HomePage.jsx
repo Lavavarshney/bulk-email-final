@@ -1,66 +1,92 @@
-import React from "react";
+import {React,useState,useEffect} from "react";
 import Demo from "./Demo";
 import EmailAnalyticsDashboard from "./EmailAnalytics";
 
 const Homepage = () => {
+  const [colorIndex, setColorIndex] = useState(0);
+  
+  // Warm, natural color progression
+  const colors = [
+    'text-yellow-400',    // Bright yellow
+    'text-lime-400',      // Fresh lime
+    'text-amber-400',     // Golden amber
+    'text-green-400',     // Spring green
+    'text-orange-400',    // Vibrant orange
+    'text-yellow-300'     // Light yellow
+  ];
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setColorIndex((prev) => (prev + 1) % colors.length);
+    }, 2500); // Slower transition for better readability
+    return () => clearInterval(interval);
+  }, []);
+
   return (
     <>
-      <div className="min-h-screen bg-gradient-to-br from-blue-400 via-purple-500 to-indigo-600 text-white">
-        {/* Navbar */}
-        <header className="flex justify-between items-center px-6 py-4 bg-indigo-700 shadow-lg">
-          <h1 className="text-3xl font-extrabold text-yellow-400">Mega Mailer</h1>
-          <nav className="flex gap-6 text-lg">
-            <a href="#features" className="hover:text-yellow-300">Features</a>
-            <a href="#upload" className="hover:text-yellow-300">Upload</a>
-            <a href="#contact" className="hover:text-yellow-300">Contact</a>
-          </nav>
-        </header>
-
-        {/* Hero Section */}
-        <section className="flex flex-col items-center justify-center text-center px-4 py-20">
-          <h1 className="text-5xl font-extrabold mb-6">
-            Effortlessly <span className="text-yellow-400">Reach Thousands</span>
-          </h1>
-          <p className="text-lg max-w-3xl">
-            Mega Mailer is the ultimate bulk email solution to simplify your email campaigns, manage schedules, and maximize reach. Perfect for businesses and individuals alike!
-          </p>
-          <a
-            href="#upload"
-            className="mt-8 bg-yellow-400 text-indigo-700 font-bold py-3 px-6 rounded-lg hover:bg-yellow-300 transition duration-200"
-          >
-            Get Started
+       
+    <div className="min-h-screen bg-gradient-to-br from-blue-400 via-purple-500 to-indigo-600 text-white">
+      {/* Navbar */}
+      <header className="flex justify-between items-center px-6 py-4 bg-indigo-700 shadow-lg">
+        <h1 className="text-3xl font-extrabold text-yellow-400 transform transition-all duration-300 hover:scale-105">
+          Mega Mailer
+        </h1>
+        <nav className="flex gap-6 text-lg">
+          <a href="#features" className="hover:text-yellow-300 transition-colors duration-300 hover:scale-105 transform">
+            Features
           </a>
-        </section>
+          <a href="#upload" className="hover:text-yellow-300 transition-colors duration-300 hover:scale-105 transform">
+            Upload
+          </a>
+          <a href="#contact" className="hover:text-yellow-300 transition-colors duration-300 hover:scale-105 transform">
+            Contact
+          </a>
+        </nav>
+      </header>
 
-        {/* Features Section */}
-        <section id="features" className="bg-white text-gray-800 py-16 px-6">
-          <h2 className="text-4xl font-extrabold text-center mb-12 text-indigo-700">
-            Features You'll Love
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-12 max-w-6xl mx-auto">
-            <div className="text-center p-6 bg-gray-100 rounded-lg shadow-lg">
-              <h3 className="text-2xl font-bold mb-4 text-yellow-500">Bulk Email Sending</h3>
-              <p>Send emails to thousands of recipients in just a few clicks.</p>
-            </div>
-            <div className="text-center p-6 bg-gray-100 rounded-lg shadow-lg">
-              <h3 className="text-2xl font-bold mb-4 text-yellow-500">Scheduling Options</h3>
-              <p>Plan your campaigns ahead by scheduling emails for the perfect time.</p>
-            </div>
-           
-            <div className="text-center p-6 bg-gray-100 rounded-lg shadow-lg">
-              <h3 className="text-2xl font-bold mb-4 text-yellow-500">Send Personalized Emails</h3>
-              <p>Craft personalized emails for each recipient to enhance engagement and response rates.</p>
-            </div>
-            <div className="text-center p-6 bg-gray-100 rounded-lg shadow-lg">
-              <h3 className="text-2xl font-bold mb-4 text-yellow-500">Advanced Email Tracking</h3>
-              <p>Track your email campaigns with detailed analytics, including the number of opens, clicks, and successful deliveries.</p>
-            </div>
-            <div className="text-center p-6 bg-gray-100 rounded-lg shadow-lg">
-              <h3 className="text-2xl font-bold mb-4 text-yellow-500">Flexible Recipient Management</h3>
-              <p>Upload recipients through a CSV file or manually input them to easily manage your email lists.</p>
-            </div>
-          </div>
-        </section>
+      {/* Hero Section */}
+      <section className="flex flex-col items-center justify-center text-center px-4 py-20">
+        <div className="relative">
+          <h1 className="text-6xl font-extrabold mb-6 flex flex-wrap justify-center items-center gap-x-4">
+            <span 
+              className={`transition-all duration-1000 ${colors[(colorIndex + 2) % colors.length]} 
+                         hover:scale-105 cursor-default tracking-tight`}
+            >
+              Effortlessly
+            </span>
+            <span 
+              className={`transition-all duration-1000 ${colors[colorIndex]} 
+                         hover:scale-105 cursor-default tracking-tight
+                         [text-shadow:0_1px_20px_rgb(250_204_21/_30%)]`}
+            >
+              Reach
+            </span>
+            <span 
+              className={`transition-all duration-1000 ${colors[(colorIndex + 4) % colors.length]} 
+                         hover:scale-105 cursor-default tracking-tight`}
+            >
+              Thousands
+            </span>
+          </h1>
+          {/* Subtle gradient overlay for depth */}
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent 
+                         opacity-50 pointer-events-none"></div>
+        </div>
+
+        <p className="text-lg max-w-3xl mt-6">
+          Mega Mailer is the ultimate bulk email solution to simplify your email campaigns, 
+          manage schedules, and maximize reach. Perfect for businesses and individuals alike!
+        </p>
+        <a
+          href="#upload"
+          className="mt-8 bg-yellow-400 text-indigo-700 font-bold py-3 px-8 rounded-lg 
+                   hover:bg-yellow-300 transition-all duration-300 hover:scale-105 transform
+                   shadow-lg hover:shadow-xl"
+        >
+          Get Started
+        </a>
+      </section>
+
 
         {/* File Upload Section */}
         <section id="upload" className="flex flex-col items-center justify-center py- 20 bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-500 text-white">
