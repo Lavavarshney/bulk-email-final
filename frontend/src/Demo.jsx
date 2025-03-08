@@ -350,6 +350,7 @@ const navigate=useNavigate();
     }
     formData.append("scheduleEmail", scheduleEmail);
     formData.append("scheduleTime", scheduleTime);
+    formData.append("subject",subject);
     formData.append("emailContent", getCompleteEmailContent());
     console.log("file",file);
    /* Append attachments
