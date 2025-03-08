@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import { Mail, Lock, User, ArrowRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import EmailAnalyticsDashboard from "./EmailAnalytics.jsx"; // Use relative path
+
 const AuthForm = ({onLogin}) => {
   const [isLogin, setIsLogin] = useState(true);
   const [formData, setFormData] = useState({
@@ -11,6 +13,7 @@ const AuthForm = ({onLogin}) => {
   });
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [token, setToken] = useState(null); // Define token state
   const navigate = useNavigate(); // Initialize useNavigate
   const handleChange = (e) => {
     setFormData({
@@ -49,11 +52,13 @@ console.log(formData);
       }
 
       if (isLogin) {
+        setToken(data.token); // Set token in state
         localStorage.setItem("token", data.token);
         console.log("token",data.token)
         setSuccess("Login successful!");
         onLogin(); // Call the onLogin prop
         navigate('/home'); // Redirect to home page after login
+    
   // Call to the backend to add the current user as a verified sender
    const addSenderResponse = await fetch(import.meta.env.VITE_BACKEND_URL/add-verified-sender, {
     method: "POST",
@@ -206,7 +211,7 @@ console.log(formData);
             {isLogin ? "Sign In" : "Create Account"}
           </button>
         </form>
-
+        
         <div className="mt-6 text-center">
           <button
             onClick={() => setIsLogin(!isLogin)}
@@ -229,6 +234,7 @@ console.log(formData);
           </div>
         )}
       </div>
+    
     </div>
   );
 };
