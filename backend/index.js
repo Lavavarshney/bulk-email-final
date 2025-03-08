@@ -309,9 +309,10 @@ const sendEmailAndNotifyWebhook = async (senderName, recipientEmail, recipientNa
         'X-Tracking-Click': 'true' // Enable click tracking (if needed)
       },
     };
+    console.log('Sending email with payload:', JSON.stringify(sendSmtpEmail, null, 2));
     const emailResponse = await apiInstance.sendTransacEmail(sendSmtpEmail);
+    console.log('Email sent successfully:', emailResponse);
 
-    console.log('Email sent:', emailResponse);
   } catch (error) {
     console.error('Error sending email ', error);
   }
