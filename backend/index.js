@@ -93,35 +93,7 @@ console.log("Hugging Face API Token:", process.env.HUGGINGFACE_API_TOKEN);
   }
 });
 
-// Protected route to fetch current user's details using the token
-app.get('/current-user', async (req, res) => {
-  const token = req.headers['authorization'];  // Assuming the token is sent in the Authorization header
 
-  if (!token) {
-    return res.status(400).json({ message: 'No token provided' });
-  }
-
-  try {
-    // Verify and decode the token to extract user data
-    const decoded = verifyToken(token);
-
-    // Find the user from the database based on the decoded email (or other unique identifier)
-    const user = await User.findOne({ email: decoded.email });
-
-    if (!user) {
-      return res.status(400).json({ message: 'User  not found' });
-    }
-
-    // Send the current user's data back as a response
-    res.json({
-      name: user.name,
-      email: user.email,
-    });
-  } catch (error) {
-    console.error(error);
-    res.status(401).json({ message: 'Invalid or expired token' });
-  }
-});
 
 const checkIfSenderExists = async (email) => {
   const url = 'https://api.brevo.com/v3/senders'; // Endpoint to get the list of senders
