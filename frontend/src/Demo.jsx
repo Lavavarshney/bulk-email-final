@@ -388,6 +388,7 @@ const handleSubmit = async (e) => {
       setStatus(`Error: ${result.message}`);
       setCheckoutUrl(result.checkoutUrl); // Handle payment required
       setShowCheckoutButton(true);
+      navigate('/payment'); // Redirect to /payments page
     } else {
       setStatus(`Error: ${result.message}`);
     }
