@@ -332,51 +332,72 @@ const navigate=useNavigate();
     setManualInput('');
   };
 
-  // Handle form submission for uploading
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!file) {
-      setStatus("Please select a file to upload.");
-      return;
-    }
+const handleSubmit = async (e) => {
+  e.preventDefault();
 
-    setIsUploading(true);
-    setStatus("Uploading...");
-    const formData = new FormData();
-    if (file) {
-      formData.append("csvFile", file, file.name);
+  if (!file) {
+    setStatus("Please select a file to upload.");
+    return;
+  }
+
+  setIsUploading(true);
+  setStatus("Uploading...");
+
+  // Create FormData instance
+  const formData = new FormData();
+  
+  // Append the CSV file
+  formData.append("csvFile", file, file.name); // Ensure 'csvFile' matches the multer field name on server
+  
+  // Append additional fields
+  formData.append("scheduleEmail", scheduleEmail || ""); // Ensure no undefined values
+  formData.append("scheduleTime", scheduleTime || "");
+  formData.append("subject", subject || "");
+  formData.append("emailContent", getCompleteEmailContent() || "");
+
+  // Debug FormData contents
+  for (const [key, value] of formData.entries()) {
+    console.log(`${key}:`, value);
+  }
+
+  const token = localStorage.getItem("token");
+  if (!token) {
+    setStatus("No authorization token found.");
+    setIsUploading(false);
+    return;
+  }
+
+  try {
+    const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/upload-csv`, {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${token}`,
+        // Do NOT set 'Content-Type': 'multipart/form-data' manually
+        // Fetch sets this automatically when using FormData
+      },
+      body: formData,
+    });
+
+    console.log("Response status:", response.status);
+    const result = await response.json();
+
+    if (response.ok) {
+      setStatus("File uploaded successfully!");
+      alert("Email sent successfully");
+    } else if (response.status === 402) {
+      setStatus(`Error: ${result.message}`);
+      setCheckoutUrl(result.checkoutUrl); // Handle payment required
+      setShowCheckoutButton(true);
     } else {
-      console.error("No CSV file selected!");
+      setStatus(`Error: ${result.message}`);
     }
-    formData.append("scheduleEmail", scheduleEmail);
-    formData.append("scheduleTime", scheduleTime);
-    formData.append("subject",subject);
-    formData.append("emailContent", getCompleteEmailContent());
-    console.log("file",file);
-   /* Append attachments
-   attachments.forEach((attachment) => {
-    formData.append("attachments", attachment); // Use the same key for multiple attachments
-  });*/
- console.log(formData);
-    const token = localStorage.getItem("token");
-    try {
-      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/upload-csv`, {
-        method: "POST",
-        headers: { "Authorization": `Bearer ${token}` },
-        body: formData,
-      });
-    console.log(response.body)
-      const result = await response.json();
-      console.log(response.status)
-      setStatus(response.ok ? "File uploaded successfully!" : `Error: ${result.message}`);
-     alert("Email sent successfully");
-    } catch (error) {
-      console.error("Error uploading file:", error);
-      setStatus("Failed to upload file.");
-    } finally {
-      setIsUploading(false);
-    }
-  };
+  } catch (error) {
+    console.error("Error uploading file:", error);
+    setStatus("Failed to upload file.");
+  } finally {
+    setIsUploading(false);
+  }
+};
 
   // Handle email sending
   const handleSendEmails = async () => {
